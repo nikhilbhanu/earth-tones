@@ -1,0 +1,183 @@
+digraph G {
+    rankdir=TB;
+    node [shape=box, style=rounded, fontname="Arial", margin="0.3,0.1"];
+    edge [fontname="Arial", fontsize=10];
+
+    /* Styling */
+    graph [fontname="Arial", ranksep=1.2, nodesep=0.8, splines=ortho];
+
+    /* Define node styles */
+    node [style="rounded,filled", fillcolor=white];
+    edge [fontsize=9, fontcolor=gray30];
+
+    /* Core Application */
+    subgraph cluster_core {
+        label="Core Application";
+        style=filled;
+        color=gray95;
+
+        App [label="App\n(Main Container)"];
+        ErrorBoundary [label="ErrorBoundary\n(Error Handling)"];
+        LoadingOverlay [label="LoadingOverlay\n(Loading States)"];
+        AudioContextProvider [label="AudioContext\n(Audio Context Provider)"];
+
+        {rank=same; App ErrorBoundary}
+    }
+
+    /* UI Components */
+    subgraph cluster_ui {
+        label="UI Components";
+        style=filled;
+        color=lightgrey;
+
+        /* Visualization Components */
+        subgraph cluster_viz {
+            label="Visualization";
+            style=filled;
+            color=white;
+
+            FractalComponent [label="FractalComponent\n(3D Visualization)"];
+            SphereActivation [label="SphereActivation\n(Note Triggers)"];
+        }
+
+        /* Control Panels */
+        subgraph cluster_panels {
+            label="Control Panels";
+            style=filled;
+            color=white;
+
+            FractalPanel [label="FractalPanel\n(Main Visualization)"];
+            AudioVizPanel [label="AudioVizPanel\n(Audio Visualization)"];
+            GlobalControlsPanel [label="GlobalControlsPanel\n(Global Settings)"];
+            StepSequencerPanel [label="StepSequencerPanel\n(Sequencer Controls)"];
+            SynthControlsPanel [label="SynthControlsPanel\n(Synth Parameters)"];
+            StepControlsPanel [label="StepControlsPanel\n(Step Settings)"];
+        }
+
+        /* Controls */
+        subgraph cluster_controls {
+            label="Controls";
+            style=filled;
+            color=white;
+
+            TransportControls [label="TransportControls\n(Playback Control)"];
+            SelectControl [label="SelectControl\n(Dropdown Control)"];
+            SliderControl [label="SliderControl\n(Parameter Control)"];
+        }
+
+        /* Shared Components */
+        subgraph cluster_shared {
+            label="Shared Components";
+            style=filled;
+            color=white;
+
+            StyledComponents [label="StyledComponents\n(Shared Styles)"];
+        }
+    }
+
+    /* State Management */
+    subgraph cluster_stores {
+        label="State Management (Zustand)";
+        style=filled;
+        color=lightblue;
+
+        AudioStore [label="AudioStore\n(Audio State)"];
+        AudioParametersStore [label="AudioParametersStore\n(Synth Parameters)"];
+        TransportStore [label="TransportStore\n(Playback State)"];
+        VisualizationStore [label="VisualizationStore\n(Visual State)"];
+
+        {rank=same; AudioStore AudioParametersStore TransportStore VisualizationStore}
+    }
+
+    /* Audio System */
+    subgraph cluster_audio {
+        label="Audio System";
+        style=filled;
+        color=lightgreen;
+
+        subgraph cluster_audio_core {
+            label="Core Audio";
+            style=filled;
+            color=white;
+
+            AudioCore [label="AudioCore\n(Core Audio Logic)"];
+            AudioScheduler [label="AudioScheduler\n(Audio Timing)"];
+            AudioSynth [label="AudioSynth\n(Sound Generation)"];
+            Sequencer [label="Sequencer\n(Pattern Sequencing)"];
+            ClockSync [label="ClockSync\n(Timing Coordination)"];
+            SphereActivationClock [label="SphereActivationClock\n(Visual-Audio Sync)"];
+        }
+
+        subgraph cluster_audio_libs {
+            label="Audio Libraries";
+            style=filled;
+            color=white;
+
+            ToneJS [label="Tone.js\n(Synthesis Engine)"];
+            WebAudioAPI [label="Web Audio API\n(Audio Processing)"];
+        }
+    }
+
+    /* Utilities and Hooks */
+    subgraph cluster_utils {
+        label="Utilities & Hooks";
+        style=filled;
+        color=lightyellow;
+
+        NoteMapping [label="NoteMapping\n(Note Generation)"];
+        Scales [label="Scales\n(Musical Scales)"];
+        Geometry [label="Geometry\n(3D Calculations)"];
+
+        UseAudioManager [label="useAudioManager\n(Audio Hook)"];
+        UseClockSync [label="useClockSync\n(Timing Hook)"];
+        UseKeyboardShortcuts [label="useKeyboardShortcuts\n(Controls Hook)"];
+    }
+
+    /* Connections */
+    /* Core Dependencies */
+    App -> ErrorBoundary [label="uses"];
+    App -> LoadingOverlay [label="manages"];
+    App -> AudioContextProvider [label="provides"];
+    App -> {AudioStore TransportStore VisualizationStore AudioParametersStore} [label="uses"];
+
+    /* UI to Stores */
+    FractalPanel -> FractalComponent [label="contains"];
+    FractalComponent -> VisualizationStore [label="updates/reads"];
+    FractalComponent -> SphereActivation [label="triggers"];
+
+    StepSequencerPanel -> {AudioStore Sequencer} [label="controls"];
+    SynthControlsPanel -> AudioParametersStore [label="configures"];
+    TransportControls -> TransportStore [label="controls"];
+    GlobalControlsPanel -> AudioParametersStore [label="configures"];
+    AudioVizPanel -> AudioStore [label="reads"];
+
+    /* Store Interactions */
+    AudioStore -> AudioCore [label="controls"];
+    AudioParametersStore -> AudioSynth [label="configures"];
+    TransportStore -> AudioScheduler [label="sync"];
+    TransportStore -> ClockSync [label="provides timing"];
+    VisualizationStore -> AudioStore [label="triggers notes"];
+
+    /* Audio System Flow */
+    AudioCore -> AudioScheduler [label="schedules with"];
+    AudioCore -> AudioSynth [label="controls"];
+    AudioCore -> Sequencer [label="manages"];
+    AudioScheduler -> ClockSync [label="syncs with"];
+    AudioScheduler -> SphereActivationClock [label="coordinates"];
+    AudioSynth -> ToneJS [label="uses"];
+    ToneJS -> WebAudioAPI [label="generates"];
+    AudioCore -> WebAudioAPI [label="analyzes"];
+
+    /* Utility Usage */
+    FractalComponent -> Geometry [label="uses"];
+    AudioCore -> {NoteMapping Scales} [label="uses"];
+    AudioSynth -> NoteMapping [label="uses"];
+
+    /* Shared Component Usage */
+    {FractalPanel AudioVizPanel GlobalControlsPanel StepSequencerPanel SynthControlsPanel StepControlsPanel} -> StyledComponents [label="uses"];
+
+    /* Hook Usage */
+    App -> UseKeyboardShortcuts [label="uses"];
+    FractalComponent -> UseClockSync [label="uses"];
+    AudioVizPanel -> UseAudioManager [label="uses"];
+}

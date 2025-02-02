@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.1.0] - 2025-02-02
+
+### Added
+- New documentation directory with architecture documentation
+- Architecture diagrams for better project visualization
+- Dedicated audio module for centralized audio processing
+- State management directory for better organization of stores
+
+### Changed
+- Major project restructuring:
+  - Moved all UI components to dedicated 'ui' directory
+  - Reorganized components into logical subdirectories (Controls, Panels, shared)
+  - Centralized audio-related code in 'audio' directory
+  - Consolidated state management in 'state' directory
+  - Improved code organization with clearer separation of concerns
+
+### Removed
+- Deprecated components directory structure
+- Old utils directory in favor of more specific organization
+- Unused TypeScript configuration
+- Legacy scales.js from constants directory
+
 ## [Unreleased]
 
 ### Added

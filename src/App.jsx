@@ -1,18 +1,18 @@
 import { styled, Box, ThemeProvider, alpha, Snackbar, Alert } from '@mui/material';
 import { useEffect } from 'react';
 import logo from './assets/earth-tones-logo.svg';
-import useTransportStore from './stores/transportStore';
-import useVisualizationStore from './stores/visualizationStore';
-import useAudioStore from './stores/audioStore';
-import FractalPanel from './components/panels/FractalPanel';
-import TransportControls from './components/controls/TransportControls';
-import AudioVizPanel from './components/panels/AudioVizPanel';
-import StepSequencerPanel from './components/panels/StepSequencerPanel';
-import GlobalControlsPanel from './components/panels/GlobalControlsPanel';
-import StepControlsPanel from './components/panels/StepControlsPanel';
-import SynthControlsPanel from './components/panels/SynthControlsPanel';
-import { useKeyboardShortcuts } from './utils/hooks/useKeyboardShortcuts';
-import LoadingOverlay from './components/LoadingOverlay';
+import useTransportStore from './state/transportStore';
+import useVisualizationStore from './state/visualizationStore';
+import useAudioStore from './state/audioStore';
+import FractalPanel from './ui/Panels/FractalPanel';
+import TransportControls from './ui/Controls/TransportControls';
+import AudioVizPanel from './ui/Panels/AudioVizPanel';
+import StepSequencerPanel from './ui/Panels/StepSequencerPanel';
+import GlobalControlsPanel from './ui/Panels/GlobalControlsPanel';
+import StepControlsPanel from './ui/Panels/StepControlsPanel';
+import SynthControlsPanel from './ui/Panels/SynthControlsPanel';
+import { useKeyboardShortcuts } from './audio/useKeyboardShortcuts';
+import LoadingOverlay from './ui/LoadingOverlay';
 import theme from './theme';
 import { COLORS } from './constants/colors';
 
@@ -99,7 +99,6 @@ function App() {
 
   // Initialize keyboard shortcuts
   useKeyboardShortcuts();
-
 
   return (
     <ThemeProvider theme={theme}>

@@ -9,10 +9,18 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, './src'),
     },
+    extensions: ['.js', '.jsx', '.json']
   },
-  base: '/earth-tones/',
   server: {
-    port: 3000,
-    host: true
+    port: 5173,
+    host: true,
+    open: true
+  },
+  build: {
+    sourcemap: true,
+    outDir: 'dist'
+  },
+  optimizeDeps: {
+    include: ['tone']
   }
 });
