@@ -12,7 +12,14 @@ import audioManager from '../utils/audio/AudioManager';
 const FractalComponent = React.memo(() => {
     const { isPlaying, bpm } = useTransportStore();
     const { scale, frequency, rotationSpeed, baseOpacity } = useVisualizationStore();
-    const { cubeSamplingRate, numberOfNotes } = useAudioStore();
+    const {
+        cubeSamplingRate,
+        numberOfNotes,
+        scaleType,
+        baseFrequency,
+        octaveRange,
+        curvature
+    } = useAudioStore();
     const groupRef = useRef();
     const frameRef = useRef();
     const clockRef = useRef(null);
@@ -22,7 +29,17 @@ const FractalComponent = React.memo(() => {
     const { cubes, cubeProperties } = useMemo(() => {
         const depth = 2; // Fixed depth for now
         const generatedCubes = createMengerSponge(depth, scale);
-        const cubesWithNotes = mapSpongeToNotes(generatedCubes, depth);
+        const cubesWithNotes = mapSpongeToNotes(generatedCubes, depth, {
+            scaleType,
+            baseFrequency,
+            octaveRange,
+            curvature
+        });
+        console.log('Initial cube note mapping:', JSON.stringify(cubesWithNotes.map((cube, i) => ({
+            index: i,
+            noteNumber: cube.noteNumber,
+            position: cube.position
+        })), null, 2));
 
         const properties = cubesWithNotes.map(cube => {
             // Calculate hue based on note number (0-127 to 0-360 degrees)
@@ -42,12 +59,19 @@ const FractalComponent = React.memo(() => {
         });
 
         return { cubes: cubesWithNotes, cubeProperties: properties };
-    }, [scale]);
+    }, [scale, scaleType, baseFrequency, octaveRange, curvature]);
 
-    // Initialize sphere activation clock when needed
+    // Initialize or reinitialize sphere activation clock when needed
     useEffect(() => {
-        if (!cubes.length || clockRef.current) return;
+        // Cleanup existing clock
+        if (clockRef.current) {
+            clockRef.current.cleanup();
+            clockRef.current = null;
+        }
 
+        if (!cubes.length) return;
+
+        // Initialize new clock with updated cube mappings
         const clock = initializeSphereActivationClock(cubes);
         clockRef.current = clock;
 
@@ -61,10 +85,13 @@ const FractalComponent = React.memo(() => {
                     if (newSet.size !== prevSpheres.size ||
                         [...newSet].some(sphere => !prevSpheres.has(sphere))) {
                         // Get active sphere objects with note numbers
-                        const activeSphereObjects = [...newSet].map(index => ({
-                            noteNumber: cubes[index].noteNumber
-                        }));
+                        const activeSphereObjects = [...newSet].map(index => {
+                            const noteNumber = cubes[index].noteNumber;
+                            console.log(`Active sphere update - Index: ${index}, Note: ${noteNumber}, Position:`, JSON.stringify(cubes[index].position));
+                            return { noteNumber };
+                        });
                         // Update audio manager with active sphere notes
+                        console.log('Sending to AudioManager:', JSON.stringify(activeSphereObjects.map(obj => obj.noteNumber)));
                         audioManager.updateActiveSphereNotes(activeSphereObjects);
                         return newSet;
                     }
@@ -85,7 +112,7 @@ const FractalComponent = React.memo(() => {
                 clockRef.current = null;
             }
         };
-    }, [cubes.length]); // Only re-run if cubes change
+    }, [cubes.length, scaleType, baseFrequency, octaveRange, curvature]); // Re-run when note mapping parameters change
 
     // Update clock parameters when they change
     useEffect(() => {

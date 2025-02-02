@@ -42,22 +42,63 @@ class AudioManager {
    * Initialize the audio context and analyzer
    */
   async initialize() {
-    if (!this.audioContext) {
-      this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-      this.analyserNode = this.audioContext.createAnalyser();
+    try {
+      // Create new context if none exists
+      if (!this.audioContext) {
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-      // Configure analyzer for better visualization
-      this.analyserNode.fftSize = 2048;
-      this.analyserNode.smoothingTimeConstant = 0.8;
+        // Create and configure analyzer node
+        this.analyserNode = this.audioContext.createAnalyser();
+        this.analyserNode.fftSize = 2048;
+        this.analyserNode.smoothingTimeConstant = 0.8;
 
-      // Connect analyzer to destination
-      this.analyserNode.connect(this.audioContext.destination);
+        // Connect analyzer to destination
+        this.analyserNode.connect(this.audioContext.destination);
+      }
+
+      // Ensure context is running
+      if (this.audioContext.state === 'suspended') {
+        await this.audioContext.resume();
+
+        // Double-check the state after resume
+        if (this.audioContext.state !== 'running') {
+          throw new Error('Failed to resume AudioContext');
+        }
+      }
+
+      // Add error handler for context state changes
+      this.audioContext.onstatechange = () => {
+        console.log('AudioContext state changed to:', this.audioContext.state);
+        if (this.audioContext.state === 'suspended') {
+          this.audioContext.resume().catch(console.error);
+        }
+      };
+
+      return this.audioContext;
+    } catch (error) {
+      console.error('Error initializing audio context:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Dispose of audio resources
+   */
+  dispose() {
+    if (this.timerID) {
+      clearInterval(this.timerID);
+      this.timerID = null;
     }
 
-    if (this.audioContext.state === 'suspended') {
-      await this.audioContext.resume();
+    if (this.analyserNode) {
+      this.analyserNode.disconnect();
+      this.analyserNode = null;
     }
-    return this.audioContext;
+
+    if (this.audioContext) {
+      this.audioContext.close().catch(console.error);
+      this.audioContext = null;
+    }
   }
 
   /**
@@ -65,12 +106,21 @@ class AudioManager {
    */
   async start(soundCallback) {
     await this.initialize();
+
+    // Ensure audio context is resumed
+    if (this.audioContext.state === 'suspended') {
+      await this.audioContext.resume();
+    }
+
+    // Wait a small amount of time to ensure context is fully resumed
+    await new Promise(resolve => setTimeout(resolve, 100));
+
     this.currentStep = 0; // Reset step counter
     this.stepStartTimes = new Array(this.numSteps).fill(0); // Reset timing data using current numSteps
     this.nextNoteTime = this.audioContext.currentTime;
     this.timerID = setInterval(this.scheduler, this.lookAheadMs);
     this.soundCallback = soundCallback;
-    console.log('Sequence started at:', this.audioContext.currentTime.toFixed(3));
+    console.log('Sequence started at:', this.audioContext.currentTime.toFixed(3), 'Context state:', this.audioContext.state);
   }
 
   /**
@@ -155,6 +205,7 @@ class AudioManager {
     // Play active sphere notes only when sequence step is active
     if (this.sequence[this.currentStep] && this.soundCallback && this.activeSphereNotes.length > 0) {
       try {
+        console.log(`Playing notes at step ${this.currentStep}:`, this.activeSphereNotes);
         this.activeSphereNotes.forEach(noteNumber => {
           this.soundCallback(this.audioContext, time, {
             step: this.currentStep,
@@ -260,6 +311,7 @@ class AudioManager {
    */
   updateActiveSphereNotes(spheres) {
     this.activeSphereNotes = spheres.map(sphere => sphere.noteNumber);
+    console.log('AudioManager received notes:', this.activeSphereNotes);
   }
 }
 

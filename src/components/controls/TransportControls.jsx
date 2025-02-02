@@ -1,4 +1,5 @@
 import { Box, IconButton, Typography, useTheme } from '@mui/material';
+import * as Tone from 'tone';
 import SliderControl from './SliderControl';
 import useTransportStore from '../../stores/transportStore';
 import useAudioStore from '../../stores/audioStore';
@@ -14,15 +15,24 @@ const TransportControls = () => {
         event.preventDefault();
         try {
             if (!isPlaying) {
-                // Ensure audio is initialized on first play
-                if (!audioStore.isInitialized) {
-                    await audioStore.initializeAudio();
-                }
-                togglePlay(); // Update UI state first
+                console.log('Starting playback sequence...');
+                // Start Tone.js first on user gesture
+                await Tone.start();
+                console.log('Tone.js started, state:', Tone.context.state);
+
+                // Then initialize audio
+                await audioStore.initializeAudio();
+                console.log('Audio initialized, starting transport...');
+
+                togglePlay(); // Update UI state
+                console.log('Transport state updated, starting audio...');
                 await audioStore.start();
+                console.log('Audio started successfully');
             } else {
+                console.log('Stopping playback sequence...');
                 togglePlay(); // Update UI state first
                 audioStore.stop();
+                console.log('Playback stopped');
             }
         } catch (error) {
             console.error('Failed to toggle playback:', error);

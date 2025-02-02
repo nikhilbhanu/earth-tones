@@ -1,19 +1,22 @@
 import React from 'react';
 import { Box, Typography, IconButton, Stack } from '@mui/material';
 import SliderControl from '../controls/SliderControl';
+import SelectControl from '../controls/SelectControl';
 import { styled } from '@mui/material/styles';
 import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import SpeedIcon from '@mui/icons-material/Speed';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
+import ScaleIcon from '@mui/icons-material/Piano';
 import { COLORS } from '../../constants/colors';
 import useAudioStore from '../../stores/audioStore';
+import { SCALES } from '../../constants/scales';
 
 // Using default MUI Slider styling from theme.js
 
 const CompactIconButton = styled(IconButton)({
-    padding: '4px',
+    padding: '2px',
     '& .MuiSvgIcon-root': {
-        fontSize: '1.2rem',
+        fontSize: '1rem',
     },
 });
 
@@ -23,19 +26,27 @@ const GlobalControlsPanel = () => {
         setCubeSamplingRate,
         numberOfNotes,
         setNumberOfNotes,
-        setMasterVolume
+        setMasterVolume,
+        scaleType,
+        setScaleType,
+        baseFrequency,
+        setBaseFrequency,
+        octaveRange,
+        setOctaveRange,
+        curvature,
+        setCurvature
     } = useAudioStore();
 
     return (
-        <Box sx={{ height: '100%' }}>
-            <Stack spacing={2}>
+        <Box sx={{ height: '100%', width: '100%', p: 0.5 }}>
+            <Stack spacing={0.5} sx={{ width: '100%' }}>
                 {/* Master Volume Section */}
-                <Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Box sx={{ width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.25 }}>
                         <CompactIconButton sx={{ color: COLORS.primary }}>
                             <VolumeUpIcon />
                         </CompactIconButton>
-                        <Typography variant="body2" sx={{ ml: 1 }}>
+                        <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.7rem' }}>
                             Master Volume
                         </Typography>
                     </Box>
@@ -48,34 +59,34 @@ const GlobalControlsPanel = () => {
                 </Box>
 
                 {/* Cube Sampling Rate Section */}
-                <Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Box sx={{ width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.25, width: '100%' }}>
                         <CompactIconButton sx={{ color: COLORS.primary }}>
                             <SpeedIcon />
                         </CompactIconButton>
-                        <Typography variant="body2" sx={{ ml: 1 }}>
-                            Cube Sampling Rate
+                        <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.7rem' }}>
+                            Cube Sampling Rate (BPM)
                         </Typography>
                     </Box>
                     <SliderControl
                         value={cubeSamplingRate}
                         onChange={(_, value) => setCubeSamplingRate(value)}
-                        min={0.01}
-                        max={2}
-                        step={0.01}
-                        aria-label="Cube Sampling Rate"
+                        min={30}
+                        max={600}
+                        step={1}
+                        aria-label="Cube Sampling Rate (BPM)"
                         valueLabelDisplay="auto"
-                        valueLabelFormat={(value) => value.toFixed(2)}
+                        valueLabelFormat={(value) => `${value} BPM`}
                     />
                 </Box>
 
                 {/* Number of Notes Section */}
-                <Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Box sx={{ width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.25, width: '100%' }}>
                         <CompactIconButton sx={{ color: COLORS.primary }}>
                             <MusicNoteIcon />
                         </CompactIconButton>
-                        <Typography variant="body2" sx={{ ml: 1 }}>
+                        <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.7rem' }}>
                             Number of Notes
                         </Typography>
                     </Box>
@@ -88,6 +99,93 @@ const GlobalControlsPanel = () => {
                         marks
                         aria-label="Number of Notes"
                         valueLabelDisplay="auto"
+                    />
+                </Box>
+
+                {/* Scale Type Section */}
+                <Box sx={{ width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.25, width: '100%' }}>
+                        <CompactIconButton sx={{ color: COLORS.primary }}>
+                            <ScaleIcon />
+                        </CompactIconButton>
+                        <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.7rem' }}>
+                            Scale Type
+                        </Typography>
+                    </Box>
+                    <SelectControl
+                        value={scaleType}
+                        onChange={(e) => setScaleType(e.target.value)}
+                        options={Object.entries(SCALES).map(([value, scale]) => ({
+                            value,
+                            label: scale.name
+                        }))}
+                        aria-label="Scale Type"
+                    />
+                </Box>
+
+                {/* Base Frequency Section */}
+                <Box sx={{ width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.25, width: '100%' }}>
+                        <CompactIconButton sx={{ color: COLORS.primary }}>
+                            <MusicNoteIcon />
+                        </CompactIconButton>
+                        <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.7rem' }}>
+                            Base Frequency (Hz)
+                        </Typography>
+                    </Box>
+                    <SliderControl
+                        value={baseFrequency}
+                        onChange={(_, value) => setBaseFrequency(value)}
+                        min={20}
+                        max={2000}
+                        step={1}
+                        aria-label="Base Frequency"
+                        valueLabelDisplay="auto"
+                        valueLabelFormat={(value) => `${value} Hz`}
+                    />
+                </Box>
+
+                {/* Octave Range Section */}
+                <Box sx={{ width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.25, width: '100%' }}>
+                        <CompactIconButton sx={{ color: COLORS.primary }}>
+                            <MusicNoteIcon />
+                        </CompactIconButton>
+                        <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.7rem' }}>
+                            Octave Range
+                        </Typography>
+                    </Box>
+                    <SliderControl
+                        value={octaveRange}
+                        onChange={(_, value) => setOctaveRange(value)}
+                        min={1}
+                        max={8}
+                        step={1}
+                        marks
+                        aria-label="Octave Range"
+                        valueLabelDisplay="auto"
+                    />
+                </Box>
+
+                {/* Curvature Section */}
+                <Box sx={{ width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.25, width: '100%' }}>
+                        <CompactIconButton sx={{ color: COLORS.primary }}>
+                            <SpeedIcon />
+                        </CompactIconButton>
+                        <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.7rem' }}>
+                            Note Distribution Curve
+                        </Typography>
+                    </Box>
+                    <SliderControl
+                        value={curvature}
+                        onChange={(_, value) => setCurvature(value)}
+                        min={0}
+                        max={1}
+                        step={0.01}
+                        aria-label="Note Distribution Curve"
+                        valueLabelDisplay="auto"
+                        valueLabelFormat={(value) => value.toFixed(2)}
                     />
                 </Box>
             </Stack>

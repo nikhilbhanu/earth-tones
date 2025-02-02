@@ -33,7 +33,13 @@ export const initializeSphereActivationClock = (allSpheres) => {
             }
 
             // Update active spheres with new Set to ensure reference change
-            activeSpheres = new Set(availableIndices.slice(0, numberOfNotes));
+            const selectedIndices = availableIndices.slice(0, numberOfNotes);
+            console.log('Sphere activation update:', JSON.stringify({
+                numberOfNotes,
+                selectedIndices,
+                timestamp: new Date().toISOString()
+            }, null, 2));
+            activeSpheres = new Set(selectedIndices);
         } catch (error) {
             console.error('Error in sphere activation:', error);
         }
@@ -47,9 +53,16 @@ export const initializeSphereActivationClock = (allSpheres) => {
         }
 
         if (isPlaying) {
-            const intervalMs = Math.max(1000 / cubeSamplingRate, 16); // Minimum 16ms (60fps)
+            // Convert BPM to milliseconds, ensuring a reasonable range
+            const bpmToMs = (bpm) => Math.max(Math.min(60000 / bpm, 1000), 33.33); // Clamp between 1s and 30fps
+            const intervalMs = bpmToMs(cubeSamplingRate);
+
             samplingInterval = setInterval(updateActiveSpheres, intervalMs);
-            console.log('Started sphere sampling at rate:', cubeSamplingRate, 'Hz');
+            console.log('Sphere sampling started:', JSON.stringify({
+                cubeSamplingRate,
+                intervalMs: intervalMs.toFixed(2),
+                timestamp: new Date().toISOString()
+            }, null, 2));
         }
     };
 

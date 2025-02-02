@@ -10,6 +10,7 @@ import AudioVizPanel from './components/panels/AudioVizPanel';
 import StepSequencerPanel from './components/panels/StepSequencerPanel';
 import GlobalControlsPanel from './components/panels/GlobalControlsPanel';
 import StepControlsPanel from './components/panels/StepControlsPanel';
+import SynthControlsPanel from './components/panels/SynthControlsPanel';
 import { useKeyboardShortcuts } from './utils/hooks/useKeyboardShortcuts';
 import LoadingOverlay from './components/LoadingOverlay';
 import theme from './theme';
@@ -34,7 +35,7 @@ const AppContainer = styled('div')({
     "transport transport transport" auto
     "viz main controls" 1fr
     "viz sequencer controls" auto
-    / minmax(180px, 250px) 1fr minmax(180px, 250px)
+    / minmax(250px, 250px) 1fr minmax(250px, 250px)
   `,
   gap: '16px',
   padding: '16px',
@@ -129,6 +130,7 @@ function App() {
         </MainPanel>
 
         <ControlsPanel>
+          <SynthControlsPanel />
           <StepControlsPanel />
         </ControlsPanel>
 

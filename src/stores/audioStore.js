@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import audioManager from '../utils/audio/AudioManager';
 import * as Tone from 'tone';
+import { DEFAULT_SCALE } from '../constants/scales';
 
 const useAudioStore = create((set, get) => ({
   // Audio context and nodes
@@ -22,24 +23,28 @@ const useAudioStore = create((set, get) => ({
     try {
       set({ isLoading: true, error: null });
 
-      // Initialize audio context and Tone.js
-      await audioManager.initialize();
-      await Tone.start();
-      Tone.setContext(audioManager.audioContext);
+      // Initialize audio context and ensure it's running
+      const context = await audioManager.initialize();
+      await context.resume();
 
-      // Create master gain node
-      const masterGain = audioManager.audioContext.createGain();
+      // Initialize Tone.js with our audio context
+      Tone.setContext(context);
+      await Tone.start();
+
+      // Create master gain node after context is ready
+      const masterGain = context.createGain();
       masterGain.connect(audioManager.getAnalyserNode());
       masterGain.gain.value = 0.75; // Default to 75%
 
-      // Create and connect synth through master gain with optimized settings
+      // Create and connect synth after Tone.js is ready
       const synth = new Tone.PolySynth(Tone.Synth, {
         envelope: {
           attack: 0.005,
           decay: 0.1,
           sustain: 0.3,
           release: 0.1
-        }
+        },
+        context: context // Explicitly pass our context
       });
       synth.connect(masterGain);
 
@@ -60,12 +65,22 @@ const useAudioStore = create((set, get) => ({
     }
   },
 
+  // Synth parameters
+  attack: 0.005,
+  decay: 0.1,
+  sustain: 0.3,
+  release: 0.1,
+
   // Audio parameters
   lookAheadMs: 15.0,
   scheduleAheadTime: 0.05,
-  tempo: 120.0, // Default tempo
-  cubeSamplingRate: 30, // Default cube sampling rate in BPM
+  tempo: 120.0, // Default tempo in BPM
+  cubeSamplingRate: 120, // Default cube sampling rate in BPM (synced with tempo)
   numberOfNotes: 1, // Default number of notes (1-4)
+  scaleType: DEFAULT_SCALE, // Musical scale type
+  baseFrequency: 261.63, // Base frequency in Hz (C4)
+  octaveRange: 4, // Number of octaves to span
+  curvature: 0.5, // Non-linear distribution factor (0-1)
 
   // Sequencer state
   sequence: Array(16).fill(false),
@@ -161,11 +176,78 @@ const useAudioStore = create((set, get) => ({
   },
 
   setCubeSamplingRate: (rate) => {
-    set({ cubeSamplingRate: rate });
+    // Clamp rate between 30 BPM (0.5 Hz) and 300 BPM (5 Hz)
+    const clampedRate = Math.max(30, Math.min(600, rate));
+    set({ cubeSamplingRate: clampedRate });
   },
 
   setNumberOfNotes: (count) => {
     set({ numberOfNotes: count });
+  },
+
+  setScaleType: (scaleType) => {
+    set({ scaleType });
+  },
+
+  setBaseFrequency: (freq) => {
+    set({ baseFrequency: Math.max(20, Math.min(20000, freq)) }); // Clamp to audible range
+  },
+
+  setOctaveRange: (range) => {
+    set({ octaveRange: Math.max(1, Math.min(8, range)) }); // Clamp between 1-8 octaves
+  },
+
+  setCurvature: (value) => {
+    set({ curvature: Math.max(0, Math.min(1, value)) }); // Clamp between 0-1
+  },
+
+  // Synth envelope controls
+  setAttack: (value) => {
+    const clampedValue = Math.max(0.001, Math.min(2, value));
+    set((state) => {
+      if (state.synth) {
+        state.synth.set({
+          envelope: { attack: clampedValue }
+        });
+      }
+      return { attack: clampedValue };
+    });
+  },
+
+  setDecay: (value) => {
+    const clampedValue = Math.max(0.001, Math.min(2, value));
+    set((state) => {
+      if (state.synth) {
+        state.synth.set({
+          envelope: { decay: clampedValue }
+        });
+      }
+      return { decay: clampedValue };
+    });
+  },
+
+  setSustain: (value) => {
+    const clampedValue = Math.max(0, Math.min(1, value));
+    set((state) => {
+      if (state.synth) {
+        state.synth.set({
+          envelope: { sustain: clampedValue }
+        });
+      }
+      return { sustain: clampedValue };
+    });
+  },
+
+  setRelease: (value) => {
+    const clampedValue = Math.max(0.001, Math.min(2, value));
+    set((state) => {
+      if (state.synth) {
+        state.synth.set({
+          envelope: { release: clampedValue }
+        });
+      }
+      return { release: clampedValue };
+    });
   },
 
   scheduleEvent: (callback, time, params) => {
