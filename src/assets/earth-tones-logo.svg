@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="240" height="48" viewBox="0 0 240 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background decorative elements -->
+  <path d="M12,24 Q60,6 120,24 T228,24" fill="none" stroke="#8B7355" stroke-width="0.5" opacity="0.3"/>
+  <path d="M12,30 Q60,48 120,30 T228,30" fill="none" stroke="#8B7355" stroke-width="0.5" opacity="0.3"/>
+
+  <!-- Main text with artistic styling -->
+  <text x="12" y="32" font-family="'Playfair Display', serif" font-size="28" fill="#6B4423" font-weight="500">
+    <tspan>earth</tspan>
+    <tspan x="102" font-style="italic" fill="#8B7355">tones</tspan>
+  </text>
+
+  <!-- Decorative dots -->
+  <circle cx="90" cy="30" r="1.2" fill="#6B4423"/>
+  <circle cx="216" cy="30" r="1.2" fill="#8B7355"/>
+</svg>
