@@ -31,7 +31,7 @@ const FractalComponent = React.memo(() => {
     useEffect(() => {
         if (!audioRef.current) {
             audioRef.current = new AudioCore();
-            audioRef.current.initialize().catch(console.error);
+            audioRef.current.initialize().catch(/* console.error */);
         }
         return () => {
             if (audioRef.current) {
@@ -51,11 +51,11 @@ const FractalComponent = React.memo(() => {
             octaveRange,
             curvature
         });
-        console.log('Initial cube note mapping:', JSON.stringify(cubesWithNotes.map((cube, i) => ({
-            index: i,
-            noteNumber: cube.noteNumber,
-            position: cube.position
-        })), null, 2));
+        // console.log('Initial cube note mapping:', JSON.stringify(cubesWithNotes.map((cube, i) => ({
+        //     index: i,
+        //     noteNumber: cube.noteNumber,
+        //     position: cube.position
+        // })), null, 2));
 
         const properties = cubesWithNotes.map(cube => {
             // Calculate hue based on note number (0-127 to 0-360 degrees)
@@ -103,11 +103,11 @@ const FractalComponent = React.memo(() => {
                         // Get active sphere objects with note numbers
                         const activeSphereObjects = [...newSet].map(index => {
                             const noteNumber = cubes[index].noteNumber;
-                            console.log(`Active sphere update - Index: ${index}, Note: ${noteNumber}, Position:`, JSON.stringify(cubes[index].position));
+                            // console.log(`Active sphere update - Index: ${index}, Note: ${noteNumber}, Position:`, JSON.stringify(cubes[index].position));
                             return { noteNumber };
                         });
                         // Log active notes for debugging
-                        console.log('Active notes:', JSON.stringify(activeSphereObjects.map(obj => obj.noteNumber)));
+                        // console.log('Active notes:', JSON.stringify(activeSphereObjects.map(obj => obj.noteNumber)));
 
                         // Update audio store with active notes
                         useAudioStore.getState().setActiveSphereNotes(activeSphereObjects.map(obj => obj.noteNumber));

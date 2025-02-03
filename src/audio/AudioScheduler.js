@@ -29,8 +29,8 @@ export class AudioScheduler {
             throw new Error('AudioContext not initialized');
         }
 
-        console.log(`[Scheduler] Starting at ${this.bpm} BPM`);
-        console.log(`[Scheduler] Look-ahead: ${this.lookAheadMs}ms, Schedule-ahead: ${this.scheduleAheadTime}s`);
+        // console.log(`[Scheduler] Starting at ${this.bpm} BPM`);
+        // console.log(`[Scheduler] Look-ahead: ${this.lookAheadMs}ms, Schedule-ahead: ${this.scheduleAheadTime}s`);
 
         this.isRunning = true;
         this.onTick = onTick;
@@ -42,7 +42,7 @@ export class AudioScheduler {
      * Stops the scheduling loop
      */
     stop() {
-        console.log('[Scheduler] Stopping');
+        // console.log('[Scheduler] Stopping');
         this.isRunning = false;
         if (this.schedulerTimer !== null) {
             window.clearTimeout(this.schedulerTimer);
@@ -55,7 +55,7 @@ export class AudioScheduler {
      */
     setBpm(bpm) {
         this.bpm = Math.max(30, Math.min(300, bpm));
-        console.log(`[Scheduler] BPM set to ${this.bpm}`);
+        // console.log(`[Scheduler] BPM set to ${this.bpm}`);
     }
 
     /**
@@ -146,13 +146,13 @@ export class AudioScheduler {
         const actual = log.actualTime.toFixed(3);
         const delta = log.delta ? log.delta.toFixed(3) : 'N/A';
 
-        console.log(
-            `[Scheduler] ${log.type.toUpperCase()} - ` +
-            `Scheduled: ${scheduled}s, ` +
-            `Actual: ${actual}s, ` +
-            `Delta: ${delta}s` +
-            (log.bpm ? `, BPM: ${log.bpm}` : '')
-        );
+        // console.log(
+        //     `[Scheduler] ${log.type.toUpperCase()} - ` +
+        //     `Scheduled: ${scheduled}s, ` +
+        //     `Actual: ${actual}s, ` +
+        //     `Delta: ${delta}s` +
+        //     (log.bpm ? `, BPM: ${log.bpm}` : '')
+        // );
     }
 
     /**

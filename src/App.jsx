@@ -4,6 +4,7 @@ import logo from './assets/earth-tones-logo.svg';
 import useTransportStore from './state/transportStore';
 import useVisualizationStore from './state/visualizationStore';
 import useAudioStore from './state/audioStore';
+import { useAudioManager } from './audio/useAudioManager';
 import FractalPanel from './ui/Panels/FractalPanel';
 import TransportControls from './ui/Controls/TransportControls';
 import AudioVizPanel from './ui/Panels/AudioVizPanel';
@@ -97,7 +98,8 @@ function App() {
   const { isPlaying } = useTransportStore();
   const { isLoading, error, clearError, initializeAudio } = useAudioStore();
 
-  // Initialize keyboard shortcuts
+  // Initialize audio and keyboard shortcuts
+  useAudioManager();
   useKeyboardShortcuts();
 
   return (

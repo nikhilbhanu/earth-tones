@@ -34,14 +34,14 @@ export const initializeSphereActivationClock = (allSpheres) => {
 
             // Update active spheres with new Set to ensure reference change
             const selectedIndices = availableIndices.slice(0, numberOfNotes);
-            console.log('Sphere activation update:', JSON.stringify({
-                numberOfNotes,
-                selectedIndices,
-                timestamp: new Date().toISOString()
-            }, null, 2));
+            // console.log('Sphere activation update:', JSON.stringify({
+            //     numberOfNotes,
+            //     selectedIndices,
+            //     timestamp: new Date().toISOString()
+            // }, null, 2));
             activeSpheres = new Set(selectedIndices);
         } catch (error) {
-            console.error('Error in sphere activation:', error);
+            // console.error('Error in sphere activation:', error);
         }
     };
 
@@ -58,11 +58,11 @@ export const initializeSphereActivationClock = (allSpheres) => {
             const intervalMs = bpmToMs(cubeSamplingRate);
 
             samplingInterval = setInterval(updateActiveSpheres, intervalMs);
-            console.log('Sphere sampling started:', JSON.stringify({
-                cubeSamplingRate,
-                intervalMs: intervalMs.toFixed(2),
-                timestamp: new Date().toISOString()
-            }, null, 2));
+            // console.log('Sphere sampling started:', JSON.stringify({
+            //     cubeSamplingRate,
+            //     intervalMs: intervalMs.toFixed(2),
+            //     timestamp: new Date().toISOString()
+            // }, null, 2));
         }
     };
 

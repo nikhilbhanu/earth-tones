@@ -32,7 +32,7 @@ export const AudioProvider = ({ children }) => {
             });
         } catch (err) {
             setError('Failed to initialize audio system');
-            console.error('Audio initialization error:', err);
+            // console.error('Audio initialization error:', err);
             throw err;
         }
     };

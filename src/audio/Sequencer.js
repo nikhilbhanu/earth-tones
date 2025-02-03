@@ -28,7 +28,7 @@ export class Sequencer {
             await this.synth.initialize();
             this.isInitialized = true;
         } catch (error) {
-            console.error('Failed to initialize sequencer:', error);
+            // console.error('Failed to initialize sequencer:', error);
             throw error;
         }
     }
@@ -53,7 +53,7 @@ export class Sequencer {
 
         // Start the scheduler with our tick callback
         this.scheduler.start((time) => this.tick(time));
-        console.log('[Sequencer] Started playback');
+        // console.log('[Sequencer] Started playback');
     }
 
     /**
@@ -65,7 +65,7 @@ export class Sequencer {
         if (this.onStepChange) {
             this.onStepChange(this.currentStep);
         }
-        console.log('[Sequencer] Stopped playback');
+        // console.log('[Sequencer] Stopped playback');
     }
 
     /**
@@ -83,14 +83,14 @@ export class Sequencer {
             const velocity = Math.max(0.2, 1 / Math.sqrt(activeNotes.length));
 
                 // Log timing information
-                console.log(
-                    `[Sequencer] Step ${this.currentStep + 1}/16 - ` +
-                    `Notes: ${activeNotes.join(', ')}, ` +
-                    `Velocity: ${velocity.toFixed(2)}, ` +
-                    `Scheduled: ${time.toFixed(3)}s, ` +
-                    `Current: ${context.currentTime.toFixed(3)}s, ` +
-                    `Look-ahead: ${(time - context.currentTime).toFixed(3)}s`
-                );
+                // console.log(
+                //     `[Sequencer] Step ${this.currentStep + 1}/16 - ` +
+                //     `Notes: ${activeNotes.join(', ')}, ` +
+                //     `Velocity: ${velocity.toFixed(2)}, ` +
+                //     `Scheduled: ${time.toFixed(3)}s, ` +
+                //     `Current: ${context.currentTime.toFixed(3)}s, ` +
+                //     `Look-ahead: ${(time - context.currentTime).toFixed(3)}s`
+                // );
 
                 // Trigger each active note
                 activeNotes.forEach(noteNumber => {

@@ -53,7 +53,7 @@ const useAudioStore = create((set, get) => {
                     isLoading: false,
                     error: 'Failed to initialize audio. Please check your browser permissions.'
                 });
-                console.error('Audio initialization error:', error);
+                // console.error('Audio initialization error:', error);
             }
         },
 
@@ -90,7 +90,7 @@ const useAudioStore = create((set, get) => {
                 set({ isRunning: true, error: null });
             } catch (error) {
                 set({ error: 'Failed to start audio playback.' });
-                console.error('Audio start error:', error);
+                // console.error('Audio start error:', error);
             }
         },
 
@@ -100,7 +100,7 @@ const useAudioStore = create((set, get) => {
                 set({ isRunning: false, currentStep: 0 });
             } catch (error) {
                 set({ error: 'Failed to stop audio playback.' });
-                console.error('Audio stop error:', error);
+                // console.error('Audio stop error:', error);
             }
         },
 

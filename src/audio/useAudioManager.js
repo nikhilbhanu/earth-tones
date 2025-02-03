@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import useAudioStore from '../state/audioStore';
+import useAudioParametersStore from '../state/audioParametersStore';
 
 export function useAudioManager() {
   const {
@@ -7,8 +8,11 @@ export function useAudioManager() {
     start,
     stop,
     setTempo,
-    dispose
+    dispose,
+    updateSynthParameters
   } = useAudioStore();
+
+  const { attack, decay, sustain, release, bpm } = useAudioParametersStore();
 
   useEffect(() => {
     // Initialize audio when hook is first used
@@ -20,6 +24,17 @@ export function useAudioManager() {
       dispose();
     };
   }, []);
+
+  // Update synth parameters when they change
+  useEffect(() => {
+    updateSynthParameters({
+      attack,
+      decay,
+      sustain,
+      release,
+      bpm
+    });
+  }, [attack, decay, sustain, release, bpm, updateSynthParameters]);
 
   return {
     start,

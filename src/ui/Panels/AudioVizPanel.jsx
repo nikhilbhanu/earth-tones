@@ -167,7 +167,7 @@ const AudioVizPanel = memo(() => {
             }
         } catch (err) {
             setError(err);
-            console.error('Visualization error:', err);
+            // console.error('Visualization error:', err);
         }
 
         // Add visibility change listener

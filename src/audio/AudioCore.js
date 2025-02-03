@@ -31,7 +31,7 @@ export class AudioCore {
 
             this.isInitialized = true;
         } catch (error) {
-            console.error('Failed to initialize audio context:', error);
+            // console.error('Failed to initialize audio context:', error);
             throw new Error('Failed to initialize audio system');
         }
     }

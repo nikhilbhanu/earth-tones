@@ -1,7 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Box, Slider, Typography } from '@mui/material';
 
-const SliderControl = ({ label, ...props }) => {
+const SliderControl = ({ label, value, onChange, ...props }) => {
+    const [localValue, setLocalValue] = useState(value);
+
+    // Update local value when prop value changes
+    React.useEffect(() => {
+        setLocalValue(value);
+    }, [value]);
+
     return (
         <Box sx={{ width: '100%', mb: 1 }}>
             {label && (
@@ -11,6 +18,13 @@ const SliderControl = ({ label, ...props }) => {
             )}
             <Slider
                 {...props}
+                value={localValue}
+                onChange={(event, newValue) => {
+                    setLocalValue(newValue);
+                }}
+                onChangeCommitted={(event, newValue) => {
+                    onChange(event, newValue);
+                }}
                 sx={{
                     width: '100%',
                     padding: '10px 0',
