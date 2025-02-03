@@ -31,7 +31,6 @@ export class AudioSynth {
 
             // Initialize Tone.js with our context
             Tone.setContext(context);
-            await Tone.start();
 
             // Create and configure synth
             this.synth = new Tone.PolySynth(Tone.Synth).toDestination();
@@ -47,6 +46,9 @@ export class AudioSynth {
             // Connect to master gain
             this.synth.disconnect();
             this.synth.connect(masterGain);
+
+            // Start Tone.js after synth is configured (will be resumed by AudioContext)
+            await Tone.start();
         }
     }
 
