@@ -2,6 +2,7 @@ import { AudioCore } from './AudioCore';
 import { AudioScheduler } from './AudioScheduler';
 import { AudioSynth } from './AudioSynth';
 import useAudioStore from '../state/audioStore';
+import useSequencerStore from '../state/sequencerStore';
 
 /**
  * Coordinates between audio components and handles sequencing logic.
@@ -11,7 +12,14 @@ export class Sequencer {
         this.audioCore = audioCore;
         this.scheduler = scheduler;
         this.synth = synth;
-        this.sequence = Array(16).fill(false);
+        this.sequence = useSequencerStore.getState().steps;
+
+        // Subscribe to sequencer store changes and store unsubscribe function
+        this.unsubscribeStore = useSequencerStore.subscribe(
+            (state) => {
+                this.sequence = state.steps;
+            }
+        );
         this.currentStep = 0;
         this.isInitialized = false;
         this.onStepChange = null;
@@ -31,16 +39,6 @@ export class Sequencer {
             // console.error('Failed to initialize sequencer:', error);
             throw error;
         }
-    }
-
-    /**
-     * Sets the sequence pattern
-     */
-    setSequence(sequence) {
-        if (sequence.length !== 16) {
-            throw new Error('Sequence must be 16 steps');
-        }
-        this.sequence = sequence;
     }
 
     /**
@@ -64,10 +62,6 @@ export class Sequencer {
      */
     stop() {
         this.scheduler.stop();
-        this.currentStep = 0;
-        if (this.onStepChange) {
-            this.onStepChange(this.currentStep);
-        }
         // console.log('[Sequencer] Stopped playback');
     }
 
@@ -78,8 +72,14 @@ export class Sequencer {
         const context = this.audioCore.getContext();
         if (!context) return;
 
-        // Only play notes if this step is active in the sequence
-        if (this.sequence[this.currentStep]) {
+        // Get current step data
+        const currentStepData = this.sequence[this.currentStep];
+
+        // Only play notes if this step is active
+        if (currentStepData.active) {
+            // Calculate timing offset from subdivision
+            const stepDuration = 60 / (this.scheduler.getBpm() * 4); // Duration of a 16th note in seconds
+            const subdivisionOffset = (currentStepData.subdivision / 23) * (stepDuration / 2); // Max ±50% of step duration
             // Get active notes from store
             const activeNotes = useAudioStore.getState().activeSphereNotes;
             if (activeNotes && activeNotes.length > 0) {
@@ -95,15 +95,17 @@ export class Sequencer {
                 //     `Look-ahead: ${(time - context.currentTime).toFixed(3)}s`
                 // );
 
-                // Trigger each active note
+                // Trigger each active note with offset timing
                 activeNotes.forEach(note => {
-                    this.synth.triggerNote(note.noteNumber, "32n", time, velocity, note.cents);
+                    this.synth.triggerNote(note.noteNumber, "32n", time + subdivisionOffset, velocity, note.cents);
                 });
             }
         }
 
         // Advance step
         this.currentStep = (this.currentStep + 1) % 16;
+        // Update store and legacy callback
+        useSequencerStore.getState().setCurrentStep(this.currentStep);
         if (this.onStepChange) {
             this.onStepChange(this.currentStep);
         }
@@ -137,6 +139,9 @@ export class Sequencer {
         this.stop();
         this.synth.dispose();
         this.audioCore.dispose();
+        if (this.unsubscribeStore) {
+            this.unsubscribeStore(); // Clean up store subscription
+        }
         this.isInitialized = false;
     }
 }

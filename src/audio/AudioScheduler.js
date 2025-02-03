@@ -59,6 +59,13 @@ export class AudioScheduler {
     }
 
     /**
+     * Gets the current BPM
+     */
+    getBpm() {
+        return this.bpm;
+    }
+
+    /**
      * Schedules a one-time event
      */
     scheduleEvent(callback, time) {

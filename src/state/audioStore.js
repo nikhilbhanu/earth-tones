@@ -18,7 +18,6 @@ const useAudioStore = create((set, get) => {
         error: null,
         isRunning: false,
         isInitialized: false,
-        sequence: Array(16).fill(false),
         currentStep: 0,
         activeSphereNotes: [], // Array of {noteNumber: number, cents: number}
         masterVolume: 0.75, // Initial volume (0-1)
@@ -36,25 +35,6 @@ const useAudioStore = create((set, get) => {
                 audioCore.setMasterVolume(volume);
                 set({ masterVolume: volume });
             }
-        },
-
-        // Sequencer controls
-        setSequence: (sequence) => {
-            if (sequencer) {
-                sequencer.setSequence(sequence);
-                set({ sequence });
-            }
-        },
-
-        toggleStep: (stepIndex) => {
-            set((state) => {
-                const newSequence = [...state.sequence];
-                newSequence[stepIndex] = !newSequence[stepIndex];
-                if (sequencer) {
-                    sequencer.setSequence(newSequence);
-                }
-                return { sequence: newSequence };
-            });
         },
 
         start: async () => {
