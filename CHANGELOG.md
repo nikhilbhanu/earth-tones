@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.2] - 2025-02-02
+
+### Added
+- BaseControl component for standardized control behavior
+- Control configurations centralized in controlConfigs.js
+
+### Changed
+- Enhanced audio core functionality with improved scheduling
+- Updated audio management and sequencing capabilities
+- Improved error boundary implementation
+- Enhanced fractal visualization synchronization
+- Refined slider control behavior
+- Updated audio context and store management
+- Reduced console logging across audio system for cleaner developer tools output
+
 ## [0.1.1] - 2025-02-02
 
 ### Added
