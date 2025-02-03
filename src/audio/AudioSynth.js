@@ -50,11 +50,46 @@ export class AudioSynth {
     /**
      * Triggers a note with the synth
      */
-    triggerNote(note, duration, time, velocity = 1) {
+    /**
+     * Triggers a note with the synth
+     * @param {number} note - MIDI note number
+     * @param {number} duration - Note duration in seconds
+     * @param {number} time - When to trigger the note
+     * @param {number} velocity - Note velocity (0-1)
+     * @param {number} cents - Microtonal offset in cents (-50 to +50)
+     */
+    triggerNote(note, duration, time, velocity = 1, cents = 0) {
         if (!this.isInitialized || !this.synth) return;
 
-        const freq = Tone.Frequency(note, "midi").toFrequency();
-        this.synth.triggerAttackRelease(freq, duration, time, velocity);
+        // Validate inputs
+        if (note === null || note === undefined || isNaN(note)) return;
+        if (time === null || time === undefined || isNaN(time)) return;
+
+        // Ensure note is within MIDI range (0-127)
+        note = Math.max(0, Math.min(127, Math.round(note)));
+
+        // Ensure cents is valid (-50 to +50)
+        cents = cents || 0;
+        cents = Math.max(-50, Math.min(50, cents));
+
+        // Convert MIDI note to frequency
+        let freq = Tone.Frequency(note, "midi").toFrequency();
+
+        // Apply microtonal offset if any
+        if (cents !== 0) {
+            // Cents to frequency multiplier formula: 2^(cents/1200)
+            const multiplier = Math.pow(2, cents / 1200);
+            freq *= multiplier;
+        }
+
+        // Ensure velocity is valid (0-1)
+        velocity = Math.max(0, Math.min(1, velocity));
+
+        try {
+            this.synth.triggerAttackRelease(freq, duration, time, velocity);
+        } catch (error) {
+            console.warn('Failed to trigger note:', { note, freq, duration, time, velocity, cents });
+        }
     }
 
     /**

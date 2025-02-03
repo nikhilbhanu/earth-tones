@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { DEFAULT_SCALE } from '../audio/scales';
+import { COORDINATE_SYSTEMS, DISTRIBUTION_PATTERNS } from '../constants/controlConfigs';
 
 const useAudioParametersStore = create((set) => ({
     // Initial state
@@ -14,6 +15,10 @@ const useAudioParametersStore = create((set) => ({
     decay: 0.1,
     sustain: 0.3,
     release: 0.1,
+    coordinateSystem: 'cartesian',
+    distribution: 'linear',
+    enableMicrotonal: false,
+    enableDepthModulation: false,
 
     // Parameter setters with validation
     setBpm: (bpm) =>
@@ -47,7 +52,19 @@ const useAudioParametersStore = create((set) => ({
         set({ sustain: Math.max(0, Math.min(1, value)) }),
 
     setRelease: (value) =>
-        set({ release: Math.max(0.001, Math.min(2, value)) })
+        set({ release: Math.max(0.001, Math.min(2, value)) }),
+
+    setCoordinateSystem: (system) =>
+        set({ coordinateSystem: Object.keys(COORDINATE_SYSTEMS).includes(system) ? system : 'cartesian' }),
+
+    setDistribution: (pattern) =>
+        set({ distribution: Object.keys(DISTRIBUTION_PATTERNS).includes(pattern) ? pattern : 'linear' }),
+
+    setEnableMicrotonal: (enabled) =>
+        set({ enableMicrotonal: Boolean(enabled) }),
+
+    setEnableDepthModulation: (enabled) =>
+        set({ enableDepthModulation: Boolean(enabled) })
 }));
 
 export default useAudioParametersStore;

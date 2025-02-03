@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.1.3] - 2025-02-02
+
+### Added
+- New note mapping design documentation (docs/note-mapping-design.md)
+- Enhanced note mapping system with advanced coordinate transformations
+- Improved audio synthesis capabilities in AudioSynth.js
+- Extended sequencer functionality for complex patterns
+
+### Changed
+- Refined AudioCore implementation for better performance
+- Updated audio parameter management and store integration
+- Enhanced fractal visualization synchronization with audio
+- Improved sphere activation rendering and timing
+- Updated global controls for new note mapping features
+- Modified control configurations for expanded functionality
+
 ## [0.1.2] - 2025-02-02
 
 ### Added
@@ -54,3 +70,12 @@
 - Legacy scales.js from constants directory
 
 ## [Unreleased]
+
+### Added
+- Enhanced note mapping algorithm with:
+  - Multiple coordinate system support (Cartesian, Spherical, Cylindrical)
+  - Flexible distribution patterns (Linear, Exponential, Logarithmic, Sinusoidal)
+  - Microtonal precision with cents offset
+  - Dynamic scale modulation based on depth
+  - Organic octave distribution using sine wave patterns
+  - Backward compatible implementation with opt-in features

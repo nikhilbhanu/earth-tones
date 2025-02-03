@@ -19,7 +19,11 @@ const FractalComponent = React.memo(() => {
         scaleType,
         baseFrequency,
         octaveRange,
-        curvature
+        curvature,
+        coordinateSystem,
+        distribution,
+        enableMicrotonal,
+        enableDepthModulation
     } = useAudioParametersStore();
     const groupRef = useRef();
     const frameRef = useRef();
@@ -49,13 +53,12 @@ const FractalComponent = React.memo(() => {
             scaleType,
             baseFrequency,
             octaveRange,
-            curvature
+            curvature,
+            coordinateSystem,
+            distribution,
+            enableMicrotonal,
+            enableDepthModulation
         });
-        // console.log('Initial cube note mapping:', JSON.stringify(cubesWithNotes.map((cube, i) => ({
-        //     index: i,
-        //     noteNumber: cube.noteNumber,
-        //     position: cube.position
-        // })), null, 2));
 
         const properties = cubesWithNotes.map(cube => {
             // Calculate hue based on note number (0-127 to 0-360 degrees)
@@ -64,6 +67,7 @@ const FractalComponent = React.memo(() => {
 
             return {
                 noteNumber: cube.noteNumber,
+                cents: cube.cents,
                 color: color,
                 baseOpacity: 0.5,
                 material: {
@@ -75,7 +79,7 @@ const FractalComponent = React.memo(() => {
         });
 
         return { cubes: cubesWithNotes, cubeProperties: properties };
-    }, [scale, scaleType, baseFrequency, octaveRange, curvature]);
+    }, [scale, scaleType, baseFrequency, octaveRange, curvature, coordinateSystem, distribution, enableMicrotonal, enableDepthModulation]);
 
     // Initialize or reinitialize sphere activation clock when needed
     useEffect(() => {
@@ -100,17 +104,14 @@ const FractalComponent = React.memo(() => {
                     // Only update if there's an actual change
                     if (newSet.size !== prevSpheres.size ||
                         [...newSet].some(sphere => !prevSpheres.has(sphere))) {
-                        // Get active sphere objects with note numbers
+                        // Get active sphere objects with note numbers and cents
                         const activeSphereObjects = [...newSet].map(index => {
-                            const noteNumber = cubes[index].noteNumber;
-                            // console.log(`Active sphere update - Index: ${index}, Note: ${noteNumber}, Position:`, JSON.stringify(cubes[index].position));
-                            return { noteNumber };
+                            const { noteNumber, cents } = cubes[index];
+                            return { noteNumber, cents };
                         });
-                        // Log active notes for debugging
-                        // console.log('Active notes:', JSON.stringify(activeSphereObjects.map(obj => obj.noteNumber)));
 
                         // Update audio store with active notes
-                        useAudioStore.getState().setActiveSphereNotes(activeSphereObjects.map(obj => obj.noteNumber));
+                        useAudioStore.getState().setActiveSphereNotes(activeSphereObjects);
                         return newSet;
                     }
                     return prevSpheres;
@@ -130,7 +131,7 @@ const FractalComponent = React.memo(() => {
                 clockRef.current = null;
             }
         };
-    }, [cubes.length, scaleType, baseFrequency, octaveRange, curvature]); // Re-run when note mapping parameters change
+    }, [cubes.length, scaleType, baseFrequency, octaveRange, curvature, coordinateSystem, distribution, enableMicrotonal, enableDepthModulation]); // Re-run when note mapping parameters change
 
     // Update clock parameters when they change
     useEffect(() => {
@@ -158,9 +159,7 @@ const FractalComponent = React.memo(() => {
             groupRef.current.rotation.y += rotationSpeed * speedMultiplier;
             groupRef.current.rotation.x += (rotationSpeed * 0.5) * speedMultiplier;
         }
-
     });
-
 
     return (
         <group ref={groupRef}>
@@ -178,13 +177,13 @@ const FractalComponent = React.memo(() => {
                         baseOpacity={baseOpacity}
                         material={props.material}
                         noteNumber={props.noteNumber}
+                        cents={props.cents}
                     />
                 );
             })}
         </group>
     );
 });
-
 
 FractalComponent.displayName = 'FractalComponent';
 

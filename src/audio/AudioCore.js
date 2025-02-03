@@ -49,8 +49,9 @@ export class AudioCore {
     }
 
     setMasterVolume(value) {
-        if (this.masterGain) {
-            this.masterGain.gain.value = Math.max(0, Math.min(1, value));
+        if (this.masterGain && this.audioContext) {
+            const safeValue = Math.max(0, Math.min(1, value));
+            this.masterGain.gain.setValueAtTime(safeValue, this.audioContext.currentTime);
         }
     }
 

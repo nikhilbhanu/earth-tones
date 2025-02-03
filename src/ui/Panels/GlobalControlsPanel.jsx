@@ -7,10 +7,15 @@ import VolumeUpIcon from '@mui/icons-material/VolumeUp';
 import SpeedIcon from '@mui/icons-material/Speed';
 import MusicNoteIcon from '@mui/icons-material/MusicNote';
 import ScaleIcon from '@mui/icons-material/Piano';
+import ThreeDRotationIcon from '@mui/icons-material/ThreeDRotation';
+import FunctionsIcon from '@mui/icons-material/Functions';
+import TuneIcon from '@mui/icons-material/Tune';
+import LayersIcon from '@mui/icons-material/Layers';
 import { COLORS } from '../../constants/colors';
 import useAudioStore from '../../state/audioStore';
 import useAudioParametersStore from '../../state/audioParametersStore';
 import { SCALES } from '../../audio/scales';
+import { COORDINATE_SYSTEMS, DISTRIBUTION_PATTERNS } from '../../constants/controlConfigs';
 
 // Using default MUI Slider styling from theme.js
 
@@ -22,7 +27,7 @@ const CompactIconButton = styled(IconButton)({
 });
 
 const GlobalControlsPanel = () => {
-    const { setMasterVolume } = useAudioStore();
+    const { masterVolume, setMasterVolume } = useAudioStore();
     const {
         cubeSamplingRate,
         setCubeSamplingRate,
@@ -35,7 +40,15 @@ const GlobalControlsPanel = () => {
         octaveRange,
         setOctaveRange,
         curvature,
-        setCurvature
+        setCurvature,
+        coordinateSystem,
+        setCoordinateSystem,
+        distribution,
+        setDistribution,
+        enableMicrotonal,
+        setEnableMicrotonal,
+        enableDepthModulation,
+        setEnableDepthModulation
     } = useAudioParametersStore();
 
     return (
@@ -52,10 +65,10 @@ const GlobalControlsPanel = () => {
                         </Typography>
                     </Box>
                     <SliderControl
-                        defaultValue={75}
+                        value={masterVolume * 100} // Convert 0-1 to 0-100
                         aria-label="Master Volume"
                         valueLabelDisplay="auto"
-                        onChange={(_, value) => setMasterVolume(value / 100)} // Convert 0-100 to 0-1
+                        onChange={(_, value) => setMasterVolume(value / 100)}
                     />
                 </Box>
 
@@ -187,6 +200,90 @@ const GlobalControlsPanel = () => {
                         aria-label="Note Distribution Curve"
                         valueLabelDisplay="auto"
                         valueLabelFormat={(value) => value.toFixed(2)}
+                    />
+                </Box>
+
+                {/* Coordinate System Section */}
+                <Box sx={{ width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.25, width: '100%' }}>
+                        <CompactIconButton sx={{ color: COLORS.primary }}>
+                            <ThreeDRotationIcon />
+                        </CompactIconButton>
+                        <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.7rem' }}>
+                            Coordinate System
+                        </Typography>
+                    </Box>
+                    <SelectControl
+                        value={coordinateSystem}
+                        onChange={(e) => setCoordinateSystem(e.target.value)}
+                        options={Object.entries(COORDINATE_SYSTEMS).map(([value, label]) => ({
+                            value,
+                            label
+                        }))}
+                        aria-label="Coordinate System"
+                    />
+                </Box>
+
+                {/* Distribution Pattern Section */}
+                <Box sx={{ width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.25, width: '100%' }}>
+                        <CompactIconButton sx={{ color: COLORS.primary }}>
+                            <FunctionsIcon />
+                        </CompactIconButton>
+                        <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.7rem' }}>
+                            Distribution Pattern
+                        </Typography>
+                    </Box>
+                    <SelectControl
+                        value={distribution}
+                        onChange={(e) => setDistribution(e.target.value)}
+                        options={Object.entries(DISTRIBUTION_PATTERNS).map(([value, label]) => ({
+                            value,
+                            label
+                        }))}
+                        aria-label="Distribution Pattern"
+                    />
+                </Box>
+
+                {/* Microtonal Toggle Section */}
+                <Box sx={{ width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.25, width: '100%' }}>
+                        <CompactIconButton sx={{ color: COLORS.primary }}>
+                            <TuneIcon />
+                        </CompactIconButton>
+                        <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.7rem' }}>
+                            Microtonal
+                        </Typography>
+                    </Box>
+                    <SelectControl
+                        value={enableMicrotonal}
+                        onChange={(e) => setEnableMicrotonal(e.target.value === 'true')}
+                        options={[
+                            { value: 'false', label: 'Off' },
+                            { value: 'true', label: 'On' }
+                        ]}
+                        aria-label="Enable Microtonal"
+                    />
+                </Box>
+
+                {/* Depth Modulation Toggle Section */}
+                <Box sx={{ width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.25, width: '100%' }}>
+                        <CompactIconButton sx={{ color: COLORS.primary }}>
+                            <LayersIcon />
+                        </CompactIconButton>
+                        <Typography variant="caption" sx={{ ml: 0.5, fontSize: '0.7rem' }}>
+                            Depth Modulation
+                        </Typography>
+                    </Box>
+                    <SelectControl
+                        value={enableDepthModulation}
+                        onChange={(e) => setEnableDepthModulation(e.target.value === 'true')}
+                        options={[
+                            { value: 'false', label: 'Off' },
+                            { value: 'true', label: 'On' }
+                        ]}
+                        aria-label="Enable Depth Modulation"
                     />
                 </Box>
             </Stack>

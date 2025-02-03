@@ -93,8 +93,8 @@ export class Sequencer {
                 // );
 
                 // Trigger each active note
-                activeNotes.forEach(noteNumber => {
-                    this.synth.triggerNote(noteNumber, "32n", time, velocity);
+                activeNotes.forEach(note => {
+                    this.synth.triggerNote(note.noteNumber, "32n", time, velocity, note.cents);
                 });
             }
         }

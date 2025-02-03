@@ -1,20 +1,83 @@
 import { SCALES, DEFAULT_SCALE } from './scales';
 
 /**
- * Maps positions in 3D space to musical note numbers using configurable scales
- * Note numbers follow MIDI convention (0-127)
+ * Coordinate system conversion functions
  */
+function cartesianToSpherical(x, y, z) {
+    const r = Math.sqrt(x * x + y * y + z * z);
+    // Handle edge case when r is 0
+    if (r === 0) {
+        return { r: 0, θ: 0, φ: 0 };
+    }
+    const θ = Math.atan2(y, x);
+    // Handle edge case to avoid division by zero
+    const φ = r === 0 ? 0 : Math.acos(Math.max(-1, Math.min(1, z / r)));
+    return { r, θ, φ };
+}
+
+function cartesianToCylindrical(x, y, z) {
+    const r = Math.sqrt(x * x + y * y);
+    // Handle edge case when x and y are both 0
+    const θ = (x === 0 && y === 0) ? 0 : Math.atan2(y, x);
+    const h = z;
+    return { r, θ, h };
+}
 
 /**
- * Converts a 3D position and depth to a musical note number
+ * Distribution pattern functions that map input (0-1) to output (0-1)
+ */
+const distributions = {
+    linear: (x) => x,
+    exponential: (x) => Math.pow(x, 2),
+    logarithmic: (x) => Math.log(1 + x) / Math.log(2),
+    sinusoidal: (x) => (Math.sin(x * Math.PI * 2 - Math.PI / 2) + 1) / 2
+};
+
+/**
+ * Calculate microtonal offset in cents (-50 to +50)
+ */
+function calculateMicrotonalOffset(fractionalPart, φ) {
+    // Use elevation angle (φ) to influence the microtonal variation
+    const baseOffset = (fractionalPart * 100) - 50;
+    const elevationFactor = (φ / Math.PI) * 2 - 1; // -1 to 1
+    return baseOffset * elevationFactor;
+}
+
+/**
+ * Calculate octave shift based on depth using a sine wave pattern
+ */
+function calculateOctaveShift(depth, octaveRange) {
+    const normalizedDepth = depth % octaveRange;
+    return Math.floor(Math.sin(normalizedDepth * Math.PI * 2) * (octaveRange / 2));
+}
+
+/**
+ * Select scale/mode based on depth
+ */
+function selectScale(depth, scaleType) {
+    const scaleKeys = Object.keys(SCALES);
+    if (scaleType && SCALES[scaleType]) {
+        return SCALES[scaleType];
+    }
+    // Cycle through scales based on depth
+    const scaleIndex = Math.floor(depth) % scaleKeys.length;
+    return SCALES[scaleKeys[scaleIndex]];
+}
+
+/**
+ * Enhanced position to note number conversion with all new features
  * @param {[number, number, number]} position - [x, y, z] coordinates
  * @param {number} depth - Current recursion depth
  * @param {Object} params - Note mapping parameters
- * @param {string} params.scaleType - Type of scale to use (defaults to pentatonic)
+ * @param {string} params.scaleType - Type of scale to use
  * @param {number} params.baseFrequency - Base frequency in Hz (default 261.63 = C4)
  * @param {number} params.octaveRange - Number of octaves to span (default 4)
- * @param {number} params.curvature - Non-linear distribution factor (0-1, default 0.5)
- * @returns {number} MIDI note number (0-127)
+ * @param {number} params.curvature - Non-linear distribution factor (0-1)
+ * @param {string} params.coordinateSystem - 'cartesian'|'spherical'|'cylindrical'
+ * @param {string} params.distribution - 'linear'|'exponential'|'logarithmic'|'sinusoidal'
+ * @param {boolean} params.enableMicrotonal - Enable microtonal variations
+ * @param {boolean} params.enableDepthModulation - Enable depth-based modulation
+ * @returns {{ noteNumber: number, cents: number }} MIDI note number and cents offset
  */
 export function positionToNoteNumber(position, depth, params = {}) {
     const [x, y, z] = position;
@@ -22,48 +85,79 @@ export function positionToNoteNumber(position, depth, params = {}) {
         scaleType = DEFAULT_SCALE,
         baseFrequency = 261.63, // C4
         octaveRange = 4,
-        curvature = 0.5
+        curvature = 0.5,
+        coordinateSystem = 'cartesian',
+        distribution = 'linear',
+        enableMicrotonal = false,
+        enableDepthModulation = false
     } = params;
 
     // Convert base frequency to MIDI note number
-    // Start two octaves lower than the base frequency
-    const adjustedBaseFreq = baseFrequency / 4; // Divide by 4 to go down 2 octaves
+    const adjustedBaseFreq = baseFrequency / 4; // Start two octaves lower
     const baseNote = Math.round(12 * Math.log2(adjustedBaseFreq / 440) + 69);
 
-    // Calculate octave range distribution - scale down the shift
-    const octaveShift = Math.floor(depth * (octaveRange / 4)) * 12;
+    // Convert coordinates based on selected system
+    let normalizedPosition;
+    let elevationAngle = 0;
 
-    // Get the scale intervals (fallback to pentatonic if invalid scale type)
-    const scale = SCALES[scaleType] || SCALES[DEFAULT_SCALE];
+    switch (coordinateSystem) {
+        case 'spherical': {
+            const { r, θ, φ } = cartesianToSpherical(x, y, z);
+            // Ensure normalizedPosition is always between 0 and 1
+            normalizedPosition = ((θ + Math.PI) / (2 * Math.PI)) % 1;
+            elevationAngle = φ;
+            break;
+        }
+        case 'cylindrical': {
+            const { r, θ, h } = cartesianToCylindrical(x, y, z);
+            // Ensure normalizedPosition is always between 0 and 1
+            normalizedPosition = ((θ + Math.PI) / (2 * Math.PI)) % 1;
+            break;
+        }
+        default: { // cartesian
+            const positionSum = Math.abs(x) + Math.abs(y) + Math.abs(z);
+            normalizedPosition = Math.pow(positionSum, 1 + curvature * 2) % 1;
+        }
+    }
 
-    // Convert position to a normalized value (0-1)
-    const positionSum = Math.abs(x) + Math.abs(y) + Math.abs(z);
+    // Apply selected distribution pattern
+    const distributionFunc = distributions[distribution] || distributions.linear;
+    const mappedPosition = distributionFunc(normalizedPosition);
 
-    // Apply curvature to the position value for non-linear distribution
-    const curvedPosition = Math.pow(positionSum, 1 + curvature * 2);
-    const normalizedPosition = curvedPosition % 1;
-
-    // Map to scale index
-    const scaleIndex = Math.floor(normalizedPosition * scale.intervals.length);
+    // Get scale and calculate note
+    const scale = enableDepthModulation ? selectScale(depth, scaleType) : SCALES[scaleType] || SCALES[DEFAULT_SCALE];
+    const scaleIndex = Math.floor(mappedPosition * scale.intervals.length);
     const noteInterval = scale.intervals[scaleIndex];
 
-    // Combine all components to get final note number
-    const noteNumber = baseNote + octaveShift + noteInterval;
+    // Calculate octave shift
+    const octaveShift = enableDepthModulation
+        ? calculateOctaveShift(depth, octaveRange) * 12
+        : Math.floor(depth * (octaveRange / 4)) * 12;
 
-    // Ensure note stays within MIDI range (0-127)
-    return Math.min(Math.max(noteNumber, 0), 127);
+    // Calculate final note number
+    const noteNumber = Math.min(Math.max(
+        baseNote + octaveShift + noteInterval,
+        0
+    ), 127);
+
+    // Calculate microtonal offset if enabled
+    const cents = enableMicrotonal
+        ? calculateMicrotonalOffset(mappedPosition * scale.intervals.length % 1, elevationAngle)
+        : 0;
+
+    return { noteNumber, cents };
 }
 
 /**
- * Maps an entire Menger sponge structure to note numbers
+ * Maps an entire Menger sponge structure to notes with microtonal information
  * @param {Array<{position: [number, number, number], scale: number}>} spongePositions
  * @param {number} depth - Current recursion depth
  * @param {Object} params - Note mapping parameters
- * @returns {Array<{position: [number, number, number], scale: number, noteNumber: number}>}
+ * @returns {Array<{position: [number, number, number], scale: number, noteNumber: number, cents: number}>}
  */
 export function mapSpongeToNotes(spongePositions, depth, params = {}) {
     return spongePositions.map(cube => ({
         ...cube,
-        noteNumber: positionToNoteNumber(cube.position, depth, params)
+        ...positionToNoteNumber(cube.position, depth, params)
     }));
 }

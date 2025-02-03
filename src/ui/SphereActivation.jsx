@@ -8,7 +8,8 @@ const SphereActivation = React.memo(({
     color,
     baseOpacity,
     material,
-    noteNumber
+    noteNumber,
+    cents = 0
 }) => {
     return (
         <Sphere
@@ -24,7 +25,7 @@ const SphereActivation = React.memo(({
                 transparent={true}
                 opacity={baseOpacity}
             >
-                <primitive attach="userData" object={{ noteNumber }} />
+                <primitive attach="userData" object={{ noteNumber, cents }} />
             </meshStandardMaterial>
         </Sphere>
     );

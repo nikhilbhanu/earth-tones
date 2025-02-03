@@ -20,7 +20,8 @@ const useAudioStore = create((set, get) => {
         isInitialized: false,
         sequence: Array(16).fill(false),
         currentStep: 0,
-        activeSphereNotes: [],
+        activeSphereNotes: [], // Array of {noteNumber: number, cents: number}
+        masterVolume: 0.75, // Initial volume (0-1)
 
         // Initialize audio
         initializeAudio: async () => {
@@ -60,6 +61,7 @@ const useAudioStore = create((set, get) => {
         // Volume control
         setMasterVolume: (volume) => {
             audioCore.setMasterVolume(volume);
+            set({ masterVolume: volume });
         },
 
         // Sequencer controls
@@ -117,7 +119,11 @@ const useAudioStore = create((set, get) => {
 
         // Update active sphere notes
         setActiveSphereNotes: (notes) => {
-            set({ activeSphereNotes: notes });
+            // Ensure each note has both noteNumber and cents properties
+            const validatedNotes = notes.map(note =>
+                typeof note === 'object' ? note : { noteNumber: note, cents: 0 }
+            );
+            set({ activeSphereNotes: validatedNotes });
         },
 
         // Cleanup

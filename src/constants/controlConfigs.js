@@ -40,6 +40,19 @@ export const ENVELOPE_CONTROLS = [
     }
 ];
 
+export const COORDINATE_SYSTEMS = {
+    cartesian: 'Cartesian',
+    spherical: 'Spherical',
+    cylindrical: 'Cylindrical'
+};
+
+export const DISTRIBUTION_PATTERNS = {
+    linear: 'Linear',
+    exponential: 'Exponential',
+    logarithmic: 'Logarithmic',
+    sinusoidal: 'Sinusoidal'
+};
+
 export const GLOBAL_CONTROLS = [
     {
         id: 'masterVolume',
@@ -117,6 +130,50 @@ export const GLOBAL_CONTROLS = [
             step: 0.01,
             valueLabelDisplay: "auto",
             valueLabelFormat: (value) => value.toFixed(2)
+        }
+    },
+    {
+        id: 'coordinateSystem',
+        label: 'Coordinate System',
+        type: 'select',
+        config: {
+            options: Object.entries(COORDINATE_SYSTEMS).map(([value, label]) => ({
+                value,
+                label
+            }))
+        }
+    },
+    {
+        id: 'distribution',
+        label: 'Distribution Pattern',
+        type: 'select',
+        config: {
+            options: Object.entries(DISTRIBUTION_PATTERNS).map(([value, label]) => ({
+                value,
+                label
+            }))
+        }
+    },
+    {
+        id: 'enableMicrotonal',
+        label: 'Enable Microtonal',
+        type: 'select',
+        config: {
+            options: [
+                { value: false, label: 'Off' },
+                { value: true, label: 'On' }
+            ]
+        }
+    },
+    {
+        id: 'enableDepthModulation',
+        label: 'Enable Depth Modulation',
+        type: 'select',
+        config: {
+            options: [
+                { value: false, label: 'Off' },
+                { value: true, label: 'On' }
+            ]
         }
     }
 ];
