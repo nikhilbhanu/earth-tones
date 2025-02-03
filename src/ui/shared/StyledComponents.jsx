@@ -15,7 +15,7 @@ export const FlexColumn = styled(Box)({
 
 // Panel base component
 export const PanelContainer = styled(Paper)(({ theme }) => ({
-    width: '100%',
+    width: 'fit-content',
     padding: '12px 12px',
     backgroundColor: 'transparent',
     borderRadius: '20px',
@@ -23,7 +23,9 @@ export const PanelContainer = styled(Paper)(({ theme }) => ({
     boxShadow: 'none',
     position: 'relative',
     zIndex: 1,
-    margin: '0 auto'
+    margin: '0 auto',
+    display: 'flex',
+    flexDirection: 'column'
 }));
 
 // Common control components
@@ -51,19 +53,9 @@ export const SectionContainer = styled(Box)({
 
 // Scrollable container
 export const ScrollContainer = styled(Box)({
-    display: 'flex',
-    flexWrap: 'nowrap',
-    minWidth: 'min-content',
-    width: '100%',
-    justifyContent: 'space-between',
-    padding: '8px 4px 16px 4px', // Reduced bottom padding for better visual consistency
-    '& > *': {
-        flex: '1 0 auto',
-        minWidth: '48px',
-        maxWidth: '64px',
-        marginRight: '4px',
-        '&:last-child': {
-            marginRight: 0
-        }
-    }
+    display: 'grid',
+    gridTemplateColumns: 'repeat(8, 48px)', // 8 steps per row
+    gap: '8px',
+    padding: '8px 4px 16px 4px',
+    width: 'fit-content'
 });

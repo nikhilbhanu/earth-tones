@@ -9,8 +9,9 @@ const formatValue = (value) => {
     return value > 0 ? `+${value}` : `${value}`;
 };
 
-const MicroTimingControl = ({ label, value, onChange, stepIndex, ...props }) => {
+const MicroTimingControl = React.memo(({ label, value, onChange, stepIndex, ...props }) => {
     const [localValue, setLocalValue] = useState(value);
+    const bpm = useTransportStore(state => state.bpm);
 
     const updateValue = useCallback((newValue) => {
         // Clamp to -8 to +8 range
@@ -20,7 +21,6 @@ const MicroTimingControl = ({ label, value, onChange, stepIndex, ...props }) => 
         const stepOffset = Math.round((clampedValue / 8) * 23);
 
         // Calculate timing values
-        const bpm = useTransportStore.getState().bpm;
         const beatDuration = 60 / bpm; // seconds per beat
         const oneTwentyEighthNote = beatDuration / 32; // duration of 1/128 note
         const offsetInSeconds = stepOffset * oneTwentyEighthNote;
@@ -39,7 +39,7 @@ const MicroTimingControl = ({ label, value, onChange, stepIndex, ...props }) => 
 
         setLocalValue(clampedValue);
         onChange?.(null, clampedValue);
-    }, [onChange, stepIndex]);
+    }, [onChange, stepIndex, bpm]);
 
     const handleIncrement = useCallback(() => {
         updateValue(localValue + 1);
@@ -115,6 +115,6 @@ const MicroTimingControl = ({ label, value, onChange, stepIndex, ...props }) => 
             </Box>
         </Box>
     );
-};
+});
 
 export default MicroTimingControl;

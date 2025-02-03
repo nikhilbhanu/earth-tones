@@ -12,15 +12,7 @@ export class Sequencer {
         this.audioCore = audioCore;
         this.scheduler = scheduler;
         this.synth = synth;
-        this.sequence = useSequencerStore.getState().steps;
-
-        // Subscribe to sequencer store changes and store unsubscribe function
-        this.unsubscribeStore = useSequencerStore.subscribe(
-            (state) => {
-                this.sequence = state.steps;
-            }
-        );
-        this.currentStep = 0;
+        this.activeNotes = [];
         this.isInitialized = false;
         this.onStepChange = null;
     }
@@ -36,8 +28,61 @@ export class Sequencer {
             await this.synth.initialize();
             this.isInitialized = true;
         } catch (error) {
-            // console.error('Failed to initialize sequencer:', error);
             throw error;
+        }
+    }
+
+    /**
+     * Maps current step to notes
+     */
+    mapStepToNotes(step, sequencerRows, activeSphereNotes) {
+        return sequencerRows.map((row, index) => {
+            const sphereNote = activeSphereNotes[index];
+            if (!sphereNote || !row.steps[step]) return null;
+
+            return row.steps[step].active ? {
+                noteNumber: sphereNote.noteNumber,
+                cents: sphereNote.cents,
+                subdivision: row.steps[step].subdivision
+            } : null;
+        }).filter(Boolean);
+    }
+
+    /**
+     * Called by scheduler on each tick
+     */
+    tick(time) {
+        const context = this.audioCore.getContext();
+        if (!context) return;
+
+        // Get all required state at once to avoid multiple store accesses
+        const sequencerState = useSequencerStore.getState();
+        const audioState = useAudioStore.getState();
+        const currentStep = sequencerState.currentStep;
+
+        // Process current step's notes
+        for (const note of this.activeNotes) {
+            // Calculate timing offset from subdivision
+            const stepDuration = 60 / (this.scheduler.getBpm() * 4); // Duration of a 16th note in seconds
+            const subdivisionOffset = (note.subdivision / 23) * (stepDuration / 2); // Max ±50% of step duration
+
+            // Play this specific note
+            const velocity = 0.8; // Fixed velocity for now
+            this.synth.triggerNote(note.noteNumber, "32n", time + subdivisionOffset, velocity, note.cents);
+        }
+
+        // Calculate next step
+        const nextStep = (currentStep + 1) % 16;
+
+        // Update step first so UI highlights match audio
+        sequencerState.setCurrentStep(nextStep);
+
+        // Map next step to notes after updating step
+        this.activeNotes = this.mapStepToNotes(nextStep, sequencerState.rows, audioState.activeSphereNotes);
+
+        // Call legacy step change callback with current step
+        if (this.onStepChange) {
+            this.onStepChange(nextStep);
         }
     }
 
@@ -52,9 +97,17 @@ export class Sequencer {
         // Start synth (initializes Tone.js after user interaction)
         await this.synth.start();
 
+        // Map initial step
+        const sequencerState = useSequencerStore.getState();
+        const audioState = useAudioStore.getState();
+        this.activeNotes = this.mapStepToNotes(
+            sequencerState.currentStep,
+            sequencerState.rows,
+            audioState.activeSphereNotes
+        );
+
         // Start the scheduler with our tick callback
         this.scheduler.start((time) => this.tick(time));
-        // console.log('[Sequencer] Started playback');
     }
 
     /**
@@ -62,53 +115,6 @@ export class Sequencer {
      */
     stop() {
         this.scheduler.stop();
-        // console.log('[Sequencer] Stopped playback');
-    }
-
-    /**
-     * Called by scheduler on each tick
-     */
-    tick(time) {
-        const context = this.audioCore.getContext();
-        if (!context) return;
-
-        // Get current step data
-        const currentStepData = this.sequence[this.currentStep];
-
-        // Only play notes if this step is active
-        if (currentStepData.active) {
-            // Calculate timing offset from subdivision
-            const stepDuration = 60 / (this.scheduler.getBpm() * 4); // Duration of a 16th note in seconds
-            const subdivisionOffset = (currentStepData.subdivision / 23) * (stepDuration / 2); // Max ±50% of step duration
-            // Get active notes from store
-            const activeNotes = useAudioStore.getState().activeSphereNotes;
-            if (activeNotes && activeNotes.length > 0) {
-            const velocity = Math.max(0.2, 1 / Math.sqrt(activeNotes.length));
-
-                // Log timing information
-                // console.log(
-                //     `[Sequencer] Step ${this.currentStep + 1}/16 - ` +
-                //     `Notes: ${activeNotes.join(', ')}, ` +
-                //     `Velocity: ${velocity.toFixed(2)}, ` +
-                //     `Scheduled: ${time.toFixed(3)}s, ` +
-                //     `Current: ${context.currentTime.toFixed(3)}s, ` +
-                //     `Look-ahead: ${(time - context.currentTime).toFixed(3)}s`
-                // );
-
-                // Trigger each active note with offset timing
-                activeNotes.forEach(note => {
-                    this.synth.triggerNote(note.noteNumber, "32n", time + subdivisionOffset, velocity, note.cents);
-                });
-            }
-        }
-
-        // Advance step
-        this.currentStep = (this.currentStep + 1) % 16;
-        // Update store and legacy callback
-        useSequencerStore.getState().setCurrentStep(this.currentStep);
-        if (this.onStepChange) {
-            this.onStepChange(this.currentStep);
-        }
     }
 
     /**
@@ -139,9 +145,6 @@ export class Sequencer {
         this.stop();
         this.synth.dispose();
         this.audioCore.dispose();
-        if (this.unsubscribeStore) {
-            this.unsubscribeStore(); // Clean up store subscription
-        }
         this.isInitialized = false;
     }
 }

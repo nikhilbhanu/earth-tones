@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.1.5] - 2025-02-03
+
+### Added
+- Enhanced step sequencer UI with improved visual feedback
+  - Step buttons with dynamic highlighting for active state
+  - Current step indicator with glow effect
+  - Responsive layout with proper spacing and elevation
+- Advanced timing coordination in sequencer engine
+  - Precise BPM-aware subdivision calculations
+  - Optimized note triggering with timing offsets
+  - Improved state synchronization between UI and audio engine
+
+### Changed
+- Refined sequencer state management
+  - Optimized row and step data structure
+  - Improved step toggle and subdivision handling
+  - Enhanced performance with memoized callbacks
+  - Better state synchronization across components
+
 ## [0.1.4] - 2025-02-03
 
 ### Added
@@ -9,6 +28,18 @@
   - Real-time BPM-aware timing calculations
   - Visual feedback with increment/decrement controls
   - Simplified styling
+- Multi-row step sequencer support
+  - Independent step sequences per row
+  - Synchronized playback across all rows
+  - Individual timing control per row
+  - Dynamic row management system
+
+### Changed
+- Enhanced sequencer architecture
+  - Refactored state management for multiple sequences
+  - Improved step timing coordination
+  - Better row organization and layout
+  - Responsive container sizing
 
 ## [0.1.3] - 2025-02-02
 

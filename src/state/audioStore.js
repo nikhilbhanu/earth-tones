@@ -18,9 +18,8 @@ const useAudioStore = create((set, get) => {
         error: null,
         isRunning: false,
         isInitialized: false,
-        currentStep: 0,
         activeSphereNotes: [], // Array of {noteNumber: number, cents: number}
-        masterVolume: 0.75, // Initial volume (0-1)
+        masterVolume: 0.5, // Initial volume (0-1)
 
         // Initialize audio components
         initializeAudio: async () => {
@@ -52,12 +51,10 @@ const useAudioStore = create((set, get) => {
 
                     // Initialize audio core and sequencer
                     await audioCore.initialize();
+                    // Sync master volume from store
+                    audioCore.setMasterVolume(get().masterVolume);
                     await sequencer.initialize();
 
-                    // Set up step change callback
-                    sequencer.setStepChangeCallback((step) => {
-                        set({ currentStep: step });
-                    });
                 }
 
                 // Resume AudioContext (needed after user gesture)
@@ -75,7 +72,7 @@ const useAudioStore = create((set, get) => {
                 if (sequencer) {
                     sequencer.stop();
                 }
-                set({ isRunning: false, currentStep: 0 });
+                set({ isRunning: false });
             } catch (error) {
                 set({ error: 'Failed to stop audio playback.' });
                 // console.error('Audio stop error:', error);
@@ -97,6 +94,16 @@ const useAudioStore = create((set, get) => {
 
         // Update active sphere notes
         setActiveSphereNotes: (notes) => {
+            // Only update if notes actually changed
+            const currentNotes = get().activeSphereNotes;
+            if (currentNotes.length === notes.length &&
+                currentNotes.every((note, i) =>
+                    note.noteNumber === notes[i].noteNumber &&
+                    note.cents === notes[i].cents
+                )) {
+                return;
+            }
+
             // Ensure each note has both noteNumber and cents properties
             const validatedNotes = notes.map(note =>
                 typeof note === 'object' ? note : { noteNumber: note, cents: 0 }

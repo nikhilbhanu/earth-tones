@@ -1,34 +1,84 @@
 import { create } from 'zustand';
+import useAudioStore from './audioStore';
 
-// Simple store focused on sequencer-specific state
-const useSequencerStore = create((set) => ({
-    // Array of step data including subdivisions
-    steps: Array(16).fill().map(() => ({
-        active: false,
-        subdivision: 0, // -23 to +23 for timing offsets
-    })),
+// Store focused on multi-row sequencer state
+const useSequencerStore = create((set, get) => ({
+    // Array of rows, each containing step data
+    rows: [],
+    // Global current step shared across all rows
+    currentStep: 0,
 
     // Actions
-    toggleStep: (index) => set((state) => ({
-        steps: state.steps.map((step, i) =>
-            i === index ? { ...step, active: !step.active } : step
+    toggleStep: (rowId, index) => {
+        set((state) => ({
+            rows: state.rows.map(row =>
+                row.id === rowId
+                    ? {
+                        ...row,
+                        steps: row.steps.map((step, i) =>
+                            i === index ? { ...step, active: !step.active } : step
+                        )
+                    }
+                    : row
+            )
+        }));
+    },
+
+    setSubdivision: (rowId, index, value) => {
+        set((state) => ({
+            rows: state.rows.map(row =>
+                row.id === rowId
+                    ? {
+                        ...row,
+                        steps: row.steps.map((step, i) =>
+                            i === index ? { ...step, subdivision: value } : step
+                        )
+                    }
+                    : row
+            )
+        }));
+    },
+
+    // Global current step tracking
+    setCurrentStep: (step) => {
+        const currentStep = get().currentStep;
+        // Only update if step actually changed
+        if (currentStep === step) return;
+
+        // Use a function to ensure we're not stale
+        set(() => ({ currentStep: step }));
+    },
+
+    // Reset all steps in a row
+    clearSteps: (rowId) => set((state) => ({
+        rows: state.rows.map(row =>
+            row.id === rowId
+                ? {
+                    ...row,
+                    steps: row.steps.map(step => ({ ...step, active: false }))
+                }
+                : row
         )
     })),
 
-    setSubdivision: (index, value) => set((state) => ({
-        steps: state.steps.map((step, i) =>
-            i === index ? { ...step, subdivision: value } : step
-        )
+    // Add a new row
+    addRow: () => set((state) => ({
+        rows: [
+            ...state.rows,
+            {
+                id: state.rows.length,
+                steps: Array(16).fill().map(() => ({
+                    active: false,
+                    subdivision: 0,
+                }))
+            }
+        ]
     })),
 
-    // Current step tracking
-    currentStep: 0,
-    setCurrentStep: (step) => set({ currentStep: step }),
-
-    // Reset all steps
-    clearSteps: () => set((state) => ({
-        steps: state.steps.map(step => ({ ...step, active: false }))
-    })),
+    // Remove a row
+    removeRow: (rowId) => set((state) => ({
+        rows: state.rows.filter(row => row.id !== rowId)
+    }))
 }));
 
 export default useSequencerStore;

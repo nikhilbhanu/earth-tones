@@ -1,9 +1,11 @@
 import { styled, Box, ThemeProvider, alpha, Snackbar, Alert } from '@mui/material';
-import { useEffect } from 'react';
+import { useEffect, useRef, memo, useState, useCallback, useMemo } from 'react';
 import logo from './assets/earth-tones-logo.svg';
 import useTransportStore from './state/transportStore';
 import useVisualizationStore from './state/visualizationStore';
 import useAudioStore from './state/audioStore';
+import useSequencerStore from './state/sequencerStore';
+import useAudioParametersStore from './state/audioParametersStore';
 import { useAudioManager } from './audio/useAudioManager';
 import FractalPanel from './ui/Panels/FractalPanel';
 import TransportControls from './ui/Controls/TransportControls';
@@ -87,16 +89,75 @@ const SequencerPanel = styled(Panel)({
   backdropFilter: 'blur(12px)',
   border: `1px solid ${alpha(COLORS.background.elevated, 0.3)}`,
   boxShadow: '0 8px 16px rgba(0, 0, 0, 0.2)',
-  padding: 0,
+  padding: '8px',
   display: 'flex',
-  justifyContent: 'stretch',
+  flexDirection: 'column',
+  gap: '8px',
   width: '100%',
-  marginTop: '-8px'
+  '& > *': {
+    flex: '1 1 auto',
+    minHeight: '120px'
+  }
 });
 
-function App() {
-  const { isPlaying } = useTransportStore();
-  const { isLoading, error, clearError, initializeAudio } = useAudioStore();
+const App = () => {
+  // Track essential sequencer state
+  const [rows, setRows] = useState(useSequencerStore.getState().rows);
+  const [currentStep, setCurrentStep] = useState(useSequencerStore.getState().currentStep);
+  const [numberOfNotes, setNumberOfNotes] = useState(useAudioParametersStore.getState().numberOfNotes);
+  const [isPlaying, setIsPlaying] = useState(useTransportStore.getState().isPlaying);
+
+  // Track UI state for error handling
+  const [audioState, setAudioState] = useState({
+    isLoading: useAudioStore.getState().isLoading,
+    error: useAudioStore.getState().error,
+    clearError: useAudioStore.getState().clearError
+  });
+
+  // Memoize store actions
+  const toggleStep = useCallback((...args) => useSequencerStore.getState().toggleStep(...args), []);
+  const setSubdivision = useCallback((...args) => useSequencerStore.getState().setSubdivision(...args), []);
+  const addRow = useCallback(() => useSequencerStore.getState().addRow(), []);
+  const removeRow = useCallback((id) => useSequencerStore.getState().removeRow(id), []);
+
+  // Subscribe to essential state changes
+  useEffect(() => {
+    const unsubscribe = [
+      useSequencerStore.subscribe(state => {
+        setRows(state.rows);
+        setCurrentStep(state.currentStep);
+      }),
+      useAudioParametersStore.subscribe(state => {
+        setNumberOfNotes(state.numberOfNotes);
+      }),
+      useAudioStore.subscribe(state => {
+        setAudioState({
+          isLoading: state.isLoading,
+          error: state.error,
+          clearError: state.clearError
+        });
+      }),
+      useTransportStore.subscribe(state => {
+        setIsPlaying(state.isPlaying);
+      })
+    ];
+
+    return () => unsubscribe.forEach(unsub => unsub());
+  }, []);
+
+  // Update rows when number of notes changes
+  useEffect(() => {
+    const rowDiff = numberOfNotes - rows.length;
+    if (rowDiff > 0) {
+      // Add missing rows
+      Array(rowDiff).fill().forEach(() => addRow());
+    } else if (rowDiff < 0) {
+      // Remove extra rows from the end
+      Array(-rowDiff).fill().forEach((_, i) =>
+        removeRow(rows.length - 1 - i)
+      );
+    }
+  }, [addRow, removeRow, rows.length, numberOfNotes]);
 
   // Initialize audio and keyboard shortcuts
   useAudioManager();
@@ -106,15 +167,15 @@ function App() {
     <ThemeProvider theme={theme}>
       <AppContainer>
         <Logo src={logo} alt="Earth Tones" />
-        {isLoading && <LoadingOverlay message="Initializing Audio..." />}
+        {audioState.isLoading && <LoadingOverlay message="Initializing Audio..." />}
         <Snackbar
-          open={!!error}
+          open={!!audioState.error}
           autoHideDuration={6000}
-          onClose={clearError}
+          onClose={audioState.clearError}
           anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
         >
-          <Alert severity="error" onClose={clearError}>
-            {error}
+          <Alert severity="error" onClose={audioState.clearError}>
+            {audioState.error}
           </Alert>
         </Snackbar>
         <TransportPanel>
@@ -136,11 +197,24 @@ function App() {
         </ControlsPanel>
 
         <SequencerPanel>
-          <StepSequencerPanel />
+          {useMemo(() =>
+            rows.map(row => (
+              <StepSequencerPanel
+                key={row.id}
+                rowId={row.id}
+                steps={row.steps}
+                currentStep={currentStep}
+                isPlaying={isPlaying}
+                onToggleStep={toggleStep}
+                onSetSubdivision={setSubdivision}
+              />
+            )),
+            [rows, currentStep, isPlaying]
+          )}
         </SequencerPanel>
       </AppContainer>
     </ThemeProvider>
   );
-}
+};
 
-export default App;
+export default memo(App);

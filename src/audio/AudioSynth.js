@@ -63,7 +63,7 @@ export class AudioSynth {
      * @param {number} velocity - Note velocity (0-1)
      * @param {number} cents - Microtonal offset in cents (-50 to +50)
      */
-    triggerNote(note, duration, time, velocity = 1, cents = 0) {
+    triggerNote(note, duration, time, velocity = 0.7, cents = 0) {
         if (!this.isInitialized || !this.synth) return;
 
         // Validate inputs
