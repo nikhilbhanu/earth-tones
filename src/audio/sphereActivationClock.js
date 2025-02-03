@@ -1,12 +1,13 @@
 import useAudioParametersStore from '../state/audioParametersStore';
 import useTransportStore from '../state/transportStore';
 
-let activeSpheres = new Set();
-let sphereCount = 0;
-let samplingInterval = null;
-
 export const initializeSphereActivationClock = (allSpheres) => {
-    sphereCount = allSpheres.length;
+    let activeSpheres = new Set();
+    let currentPosition = 0; // Track current position
+    let visitedVertices = new Set(); // Track visited vertices
+    let allPositions = Array.from({ length: allSpheres.length }, (_, i) => i);
+    let currentSequence = []; // Current sequence of positions to visit
+    let samplingInterval = null;
 
     // Clean up any existing interval
     if (samplingInterval) {
@@ -25,21 +26,78 @@ export const initializeSphereActivationClock = (allSpheres) => {
         if (!isPlaying) return;
 
         try {
-            // Create array of all possible indices and shuffle
-            const availableIndices = Array.from({ length: sphereCount }, (_, i) => i);
-            for (let i = availableIndices.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [availableIndices[i], availableIndices[j]] = [availableIndices[j], availableIndices[i]];
+            // Generate new sequence if current one is empty
+            if (currentSequence.length === 0) {
+                // Create a sequence that visits all positions
+                currentSequence = [...allPositions];
+
+                // Apply some musical variation to the sequence
+                // Split into groups of 8 and shuffle each group
+                for (let i = 0; i < currentSequence.length; i += 8) {
+                    const group = currentSequence.slice(i, Math.min(i + 8, currentSequence.length));
+                    for (let j = group.length - 1; j > 0; j--) {
+                        const k = Math.floor(Math.random() * (j + 1));
+                        [group[j], group[k]] = [group[k], group[j]];
+                    }
+                    currentSequence.splice(i, group.length, ...group);
+                }
             }
 
-            // Update active spheres with new Set to ensure reference change
-            const selectedIndices = availableIndices.slice(0, numberOfNotes);
-            // console.log('Sphere activation update:', JSON.stringify({
-            //     numberOfNotes,
-            //     selectedIndices,
-            //     timestamp: new Date().toISOString()
-            // }, null, 2));
-            activeSpheres = new Set(selectedIndices);
+            // Get next position from sequence
+            currentPosition = currentSequence.shift();
+            visitedVertices.add(currentPosition);
+
+            // Find immediate neighbors in 3D space
+            const currentSphere = allSpheres[currentPosition];
+            const currentPos = currentSphere.position;
+
+            // Find closest neighbors using squared distance (more efficient than sqrt)
+            const neighbors = [];
+            const maxNeighbors = 3;
+            const processed = new Set([currentPosition]);
+
+            // First pass: find potential neighbors within a small radius
+            const radius = currentSphere.scale * 3; // Use sphere scale as reference
+            const radiusSquared = radius * radius;
+
+            for (let i = 0; i < allSpheres.length && neighbors.length < maxNeighbors; i++) {
+                if (processed.has(i)) continue;
+
+                const sphere = allSpheres[i];
+                const dx = sphere.position[0] - currentPos[0];
+                const dy = sphere.position[1] - currentPos[1];
+                const dz = sphere.position[2] - currentPos[2];
+                const distSquared = dx*dx + dy*dy + dz*dz;
+
+                if (distSquared <= radiusSquared) {
+                    neighbors.push(i);
+                    processed.add(i);
+                }
+            }
+
+            // Second pass: if we need more neighbors, get the next closest ones
+            if (neighbors.length < maxNeighbors) {
+                const remaining = allSpheres
+                    .map((sphere, index) => {
+                        if (processed.has(index)) return null;
+                        const dx = sphere.position[0] - currentPos[0];
+                        const dy = sphere.position[1] - currentPos[1];
+                        const dz = sphere.position[2] - currentPos[2];
+                        return {
+                            index,
+                            distSquared: dx*dx + dy*dy + dz*dz
+                        };
+                    })
+                    .filter(Boolean)
+                    .sort((a, b) => a.distSquared - b.distSquared)
+                    .slice(0, maxNeighbors - neighbors.length)
+                    .map(n => n.index);
+
+                neighbors.push(...remaining);
+            }
+
+            // Create new Set to avoid reference issues
+            activeSpheres = new Set([currentPosition, ...neighbors]);
         } catch (error) {
             // console.error('Error in sphere activation:', error);
         }
@@ -96,7 +154,10 @@ export const initializeSphereActivationClock = (allSpheres) => {
             }
             unsubscribeAudio();
             unsubscribeTransport();
-            activeSpheres.clear();
+            currentPosition = 0; // Reset to starting position
+            visitedVertices.clear(); // Clear visited tracking
+            currentSequence = []; // Clear current sequence
+            activeSpheres = new Set(); // Create new empty Set
         }
     };
 };

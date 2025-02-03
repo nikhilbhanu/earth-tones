@@ -1,6 +1,43 @@
 import { SCALES, DEFAULT_SCALE } from './scales';
 
 /**
+ * Cube vertex definitions and neighbor relationships
+ * The cube vertices are numbered 0-7, representing the corners of a cube
+ * Each vertex has 3 neighbors connected by edges
+ */
+export const CUBE_VERTICES = {
+    0: [-1, -1, -1], // vertex 0 coordinates
+    1: [1, -1, -1],  // vertex 1 coordinates
+    2: [1, 1, -1],   // vertex 2 coordinates
+    3: [-1, 1, -1],  // vertex 3 coordinates
+    4: [-1, -1, 1],  // vertex 4 coordinates
+    5: [1, -1, 1],   // vertex 5 coordinates
+    6: [1, 1, 1],    // vertex 6 coordinates
+    7: [-1, 1, 1]    // vertex 7 coordinates
+};
+
+// Define neighbor relationships along cube edges
+const CUBE_NEIGHBORS = {
+    0: [1, 3, 4], // vertex 0 connects to vertices 1, 3, and 4
+    1: [0, 2, 5], // vertex 1 connects to vertices 0, 2, and 5
+    2: [1, 3, 6], // vertex 2 connects to vertices 1, 3, and 6
+    3: [0, 2, 7], // vertex 3 connects to vertices 0, 2, and 7
+    4: [0, 5, 7], // vertex 4 connects to vertices 0, 5, and 7
+    5: [1, 4, 6], // vertex 5 connects to vertices 1, 4, and 6
+    6: [2, 5, 7], // vertex 6 connects to vertices 2, 5, and 7
+    7: [3, 4, 6]  // vertex 7 connects to vertices 3, 4, and 6
+};
+
+/**
+ * Get valid neighbors for a given vertex
+ * @param {number} vertex - Vertex index (0-7)
+ * @returns {number[]} Array of neighboring vertex indices
+ */
+export function getNeighbors(vertex) {
+    return CUBE_NEIGHBORS[vertex] || [];
+}
+
+/**
  * Coordinate system conversion functions
  */
 function cartesianToSpherical(x, y, z) {
