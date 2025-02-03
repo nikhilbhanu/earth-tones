@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.1.4] - 2025-02-03
+
+### Added
+- New MicroTimingControl component for precise step timing adjustments
+  - Supports fine-grained timing control with 1/128 note precision
+  - Range of -8 to +8 steps (equivalent to -23 to +23 1/128 notes)
+  - Real-time BPM-aware timing calculations
+  - Visual feedback with increment/decrement controls
+  - Simplified styling
+
 ## [0.1.3] - 2025-02-02
 
 ### Added
