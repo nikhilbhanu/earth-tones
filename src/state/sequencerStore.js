@@ -39,6 +39,21 @@ const useSequencerStore = create((set, get) => ({
         }));
     },
 
+    setNoteLength: (rowId, index, value) => {
+        set((state) => ({
+            rows: state.rows.map(row =>
+                row.id === rowId
+                    ? {
+                        ...row,
+                        steps: row.steps.map((step, i) =>
+                            i === index ? { ...step, noteLength: value } : step
+                        )
+                    }
+                    : row
+            )
+        }));
+    },
+
     // Global current step tracking
     setCurrentStep: (step) => {
         const currentStep = get().currentStep;
@@ -70,6 +85,7 @@ const useSequencerStore = create((set, get) => ({
                 steps: Array(16).fill().map(() => ({
                     active: false,
                     subdivision: 0,
+                    noteLength: 1,
                 }))
             }
         ]
@@ -78,7 +94,11 @@ const useSequencerStore = create((set, get) => ({
     // Remove a row
     removeRow: (rowId) => set((state) => ({
         rows: state.rows.filter(row => row.id !== rowId)
-    }))
+    })),
+
+    // Swing amount (0-1) affects timing offset of active steps
+    swing: 0,
+    setSwing: (value) => set({ swing: value })
 }));
 
 export default useSequencerStore;

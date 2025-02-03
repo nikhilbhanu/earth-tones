@@ -50,12 +50,3 @@ export const SectionContainer = styled(Box)({
     width: '100%',
     overflowX: 'auto',
 });
-
-// Scrollable container
-export const ScrollContainer = styled(Box)({
-    display: 'grid',
-    gridTemplateColumns: 'repeat(8, 48px)', // 8 steps per row
-    gap: '8px',
-    padding: '8px 4px 16px 4px',
-    width: 'fit-content'
-});

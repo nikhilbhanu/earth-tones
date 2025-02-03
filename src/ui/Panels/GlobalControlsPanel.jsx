@@ -118,7 +118,7 @@ const GlobalControlsPanel = () => {
 
                 {/* Scale Type Section */}
                 <Box sx={{ width: '100%' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 0.25, width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, width: '100%' }}>
                         <CompactIconButton sx={{ color: COLORS.primary }}>
                             <ScaleIcon />
                         </CompactIconButton>
@@ -127,6 +127,7 @@ const GlobalControlsPanel = () => {
                         </Typography>
                     </Box>
                     <SelectControl
+                        sx={{ mb: 0.75 }}
                         value={scaleType}
                         onChange={(e) => setScaleType(e.target.value)}
                         options={Object.entries(SCALES).map(([value, scale]) => ({

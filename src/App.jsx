@@ -117,6 +117,7 @@ const App = () => {
   // Memoize store actions
   const toggleStep = useCallback((...args) => useSequencerStore.getState().toggleStep(...args), []);
   const setSubdivision = useCallback((...args) => useSequencerStore.getState().setSubdivision(...args), []);
+  const setNoteLength = useCallback((...args) => useSequencerStore.getState().setNoteLength(...args), []);
   const addRow = useCallback(() => useSequencerStore.getState().addRow(), []);
   const removeRow = useCallback((id) => useSequencerStore.getState().removeRow(id), []);
 
@@ -207,9 +208,10 @@ const App = () => {
                 isPlaying={isPlaying}
                 onToggleStep={toggleStep}
                 onSetSubdivision={setSubdivision}
+                onSetNoteLength={setNoteLength}
               />
             )),
-            [rows, currentStep, isPlaying]
+            [rows, currentStep, isPlaying, toggleStep, setSubdivision, setNoteLength]
           )}
         </SequencerPanel>
       </AppContainer>

@@ -1,8 +1,37 @@
 # Changelog
 
+## [Unreleased]
+
+### Added
+- Note length control for sequencer steps
+  - Individual note length control per step
+  - Integration with existing step timing system
+  - Enhanced playback precision for varied note lengths
+  - Added swing
+- Enhanced note mapping algorithm with:
+  - Multiple coordinate system support (Cartesian, Spherical, Cylindrical)
+  - Flexible distribution patterns (Linear, Exponential, Logarithmic, Sinusoidal)
+  - Microtonal precision with cents offset
+  - Dynamic scale modulation based on depth
+  - Organic octave distribution using sine wave patterns
+  - Backward compatible implementation with opt-in features
+
+### Changed
+- Improved UI component styling
+  - Refined slider control layout
+  - Enhanced typography and spacing
+  - Better component organization
+
 ## [0.1.5] - 2025-02-03
 
 ### Added
+- Added six new musical scales:
+  - Dorian (minor scale with raised 6th)
+  - Mixolydian (major scale with lowered 7th)
+  - Blues (pentatonic with blue notes)
+  - Harmonic Minor (minor scale with raised 7th)
+  - Whole Tone (uses only whole steps)
+  - Chromatic (all 12 notes)
 - Enhanced step sequencer UI with improved visual feedback
   - Step buttons with dynamic highlighting for active state
   - Current step indicator with glow effect
@@ -109,14 +138,3 @@
 - Old utils directory in favor of more specific organization
 - Unused TypeScript configuration
 - Legacy scales.js from constants directory
-
-## [Unreleased]
-
-### Added
-- Enhanced note mapping algorithm with:
-  - Multiple coordinate system support (Cartesian, Spherical, Cylindrical)
-  - Flexible distribution patterns (Linear, Exponential, Logarithmic, Sinusoidal)
-  - Microtonal precision with cents offset
-  - Dynamic scale modulation based on depth
-  - Organic octave distribution using sine wave patterns
-  - Backward compatible implementation with opt-in features

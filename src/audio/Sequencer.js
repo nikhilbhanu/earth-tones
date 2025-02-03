@@ -43,7 +43,8 @@ export class Sequencer {
             return row.steps[step].active ? {
                 noteNumber: sphereNote.noteNumber,
                 cents: sphereNote.cents,
-                subdivision: row.steps[step].subdivision
+                subdivision: row.steps[step].subdivision,
+                noteLength: row.steps[step].noteLength
             } : null;
         }).filter(Boolean);
     }
@@ -62,13 +63,20 @@ export class Sequencer {
 
         // Process current step's notes
         for (const note of this.activeNotes) {
-            // Calculate timing offset from subdivision
             const stepDuration = 60 / (this.scheduler.getBpm() * 4); // Duration of a 16th note in seconds
+
+            // Calculate timing offsets
             const subdivisionOffset = (note.subdivision / 23) * (stepDuration / 2); // Max ±50% of step duration
+            const swingOffset = currentStep % 2 === 1 ? sequencerState.swing * (stepDuration / 2) : 0; // Apply swing to odd steps
+            const totalOffset = subdivisionOffset + swingOffset;
+
+            // Calculate note duration based on noteLength (0.25 to 4)
+            const baseDuration = 60 / (this.scheduler.getBpm() * 4); // Duration of a 16th note
+            const noteDuration = baseDuration * (note.noteLength || 1);
 
             // Play this specific note
             const velocity = 0.8; // Fixed velocity for now
-            this.synth.triggerNote(note.noteNumber, "32n", time + subdivisionOffset, velocity, note.cents);
+            this.synth.triggerNote(note.noteNumber, noteDuration, time + totalOffset, velocity, note.cents);
         }
 
         // Calculate next step

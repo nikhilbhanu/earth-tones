@@ -4,6 +4,7 @@ import { alpha } from '@mui/material/styles';
 import { COLORS } from '../../constants/colors';
 import { PanelContainer } from '../shared/StyledComponents';
 import MicroTimingControl from '../Controls/MicroTimingControl';
+import SliderControl from '../Controls/SliderControl';
 
 /** @type {React.FC<{stepIndex: number, active: boolean, isCurrent: boolean, onClick: () => void}>} */
 const StepButton = memo(({ stepIndex, active, isCurrent, onClick }) => (
@@ -52,7 +53,8 @@ const StepButton = memo(({ stepIndex, active, isCurrent, onClick }) => (
     currentStep: number,
     isPlaying: boolean,
     onToggleStep: (rowId: number, stepIndex: number) => void,
-    onSetSubdivision: (rowId: number, stepIndex: number, value: number) => void
+    onSetSubdivision: (rowId: number, stepIndex: number, value: number) => void,
+    onSetNoteLength: (rowId: number, stepIndex: number, value: number) => void
 }>>} */
 const StepSequencerPanel = memo(({
     rowId,
@@ -60,7 +62,8 @@ const StepSequencerPanel = memo(({
     currentStep,
     isPlaying,
     onToggleStep,
-    onSetSubdivision
+    onSetSubdivision,
+    onSetNoteLength
 }) => {
     // Memoize callbacks
     const toggleStepCallback = useCallback((stepIndex) => {
@@ -70,6 +73,10 @@ const StepSequencerPanel = memo(({
     const setSubdivisionCallback = useCallback((stepIndex, value) => {
         onSetSubdivision(rowId, stepIndex, value);
     }, [onSetSubdivision, rowId]);
+
+    const setNoteLengthCallback = useCallback((stepIndex, value) => {
+        onSetNoteLength(rowId, stepIndex, value);
+    }, [onSetNoteLength, rowId]);
 
     if (!steps) return null;
 
@@ -91,7 +98,7 @@ const StepSequencerPanel = memo(({
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        height: '120px',
+                        height: '110px',
                         position: 'relative',
                         width: '48px',
                         justifyContent: 'center'
@@ -104,7 +111,7 @@ const StepSequencerPanel = memo(({
                             minWidth: '36px',
                             maxWidth: '48px',
                             aspectRatio: '1',
-                            margin: '2px',
+                            margin: '1px',
                             borderRadius: '6px',
                             transition: 'all 0.15s ease',
                             overflow: 'hidden'
@@ -117,22 +124,59 @@ const StepSequencerPanel = memo(({
                             onClick={() => toggleStepCallback(stepIndex)}
                         />
                     </Paper>
-                    <MicroTimingControl
-                        value={step.subdivision}
-                        onChange={(_, value) => setSubdivisionCallback(stepIndex, value)}
-                        stepIndex={stepIndex}
-                        sx={{
-                            width: '48px',
-                            mt: 1,
-                            position: 'absolute',
-                            top: '50%',
-                            transform: 'translateY(-50%)',
-                            '& .MuiSlider-markLabel': {
-                                transform: 'rotate(-45deg) translate(10px, 10px)',
-                                whiteSpace: 'nowrap'
-                            }
-                        }}
-                    />
+                    <Box sx={{
+                        display: 'flex', alignItems: 'center',
+                        height: '20px',
+                        pt: 2,
+                        position: 'relative',
+                        width: '48px',
+                        justifyContent: 'center'
+                    }}>
+                        <MicroTimingControl
+                            value={step.subdivision}
+                            onChange={(_, value) => setSubdivisionCallback(stepIndex, value)}
+                            stepIndex={stepIndex}
+                            sx={{
+                                width: '48px',
+                                '& .MuiSlider-markLabel': {
+                                    transform: 'rotate(-45deg) translate(10px, 10px)',
+                                    whiteSpace: 'nowrap'
+                                }
+                            }}
+                        />
+                    </Box>
+                    <Box sx={{
+                        display: 'flex', alignItems: 'center',
+                        height: '20px',
+                        pt: 1,
+                        ml: 1, mr: 1,
+                        position: 'relative',
+                        width: '48px',
+                        justifyContent: 'center'
+                    }}>
+                        <SliderControl
+                            value={step.noteLength}
+                            onChange={(_, value) => setNoteLengthCallback(stepIndex, value)}
+                            min={0.25}
+                            max={4}
+                            step={0.25}
+                            sx={{
+                                width: '48px',
+                                '& .MuiSlider-markLabel': {
+                                    transform: 'rotate(-45deg) translate(10px, 10px)',
+                                    whiteSpace: 'nowrap'
+                                },
+                                '& .MuiSlider-track': {
+                                    backgroundColor: COLORS.viz.A,
+                                },
+                                '& .MuiSlider-thumb': {
+                                    backgroundColor: COLORS.success,
+                                    height: 10,
+                                    width: 10,
+                                }
+                            }}
+                        />
+                    </Box>
                 </Box>
             ))}
         </Paper >

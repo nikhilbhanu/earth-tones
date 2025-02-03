@@ -80,18 +80,18 @@ const TransportControls = () => {
             <Box sx={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 2,
+                gap: 1,
                 flex: 1,
-                maxWidth: '200px'
+                maxWidth: '150px'
             }}>
                 <Typography variant="subtitle1" sx={{
                     whiteSpace: 'nowrap',
-                    minWidth: '60px'
+                    minWidth: '50px'
                 }}>
                     {bpm} BPM
                 </Typography>
                 <Box sx={{
-                    width: '100px',
+                    width: '120px',
                     padding: '0 8px'
                 }}>
                     <SliderControl

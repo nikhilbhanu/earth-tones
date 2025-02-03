@@ -10,7 +10,7 @@ const SliderControl = ({ label, value, onChange, ...props }) => {
     }, [value]);
 
     return (
-        <Box sx={{ width: '100%', mb: 1 }}>
+        <Box sx={{ width: '100%' }}>
             {label && (
                 <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>
                     {label}
@@ -27,13 +27,13 @@ const SliderControl = ({ label, value, onChange, ...props }) => {
                 }}
                 sx={{
                     width: '100%',
-                    padding: '10px 0',
+                    padding: '0px 0px',
                     '& .MuiSlider-thumb': {
-                        height: 16,
-                        width: 16,
+                        height: 10,
+                        width: 10,
                     },
                     '& .MuiSlider-rail, & .MuiSlider-track': {
-                        height: 3,
+                        height: 2,
                     },
                     ...props.sx
                 }}
