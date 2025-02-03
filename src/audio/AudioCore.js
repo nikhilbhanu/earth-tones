@@ -12,28 +12,7 @@ export class AudioCore {
 
     async initialize() {
         if (this.isInitialized) return;
-
-        try {
-            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
-            // Don't auto-resume, wait for user gesture
-
-            // Create and configure analyzer node
-            this.analyserNode = this.audioContext.createAnalyser();
-            this.analyserNode.fftSize = 2048;
-
-            // Create master gain node
-            this.masterGain = this.audioContext.createGain();
-            this.masterGain.gain.value = 0.75;
-
-            // Connect audio graph
-            this.masterGain.connect(this.analyserNode);
-            this.analyserNode.connect(this.audioContext.destination);
-
-            this.isInitialized = true;
-        } catch (error) {
-            // console.error('Failed to initialize audio context:', error);
-            throw new Error('Failed to initialize audio system');
-        }
+        this.isInitialized = true;
     }
 
     getContext() {
@@ -56,7 +35,22 @@ export class AudioCore {
     }
 
     async resume() {
-        if (this.audioContext && this.audioContext.state !== 'running') {
+        if (!this.audioContext) {
+            // Create context on first resume (user interaction)
+            this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+
+            // Create and configure analyzer node
+            this.analyserNode = this.audioContext.createAnalyser();
+            this.analyserNode.fftSize = 2048;
+
+            // Create master gain node
+            this.masterGain = this.audioContext.createGain();
+            this.masterGain.gain.value = 0.75;
+
+            // Connect audio graph
+            this.masterGain.connect(this.analyserNode);
+            this.analyserNode.connect(this.audioContext.destination);
+        } else if (this.audioContext.state !== 'running') {
             await this.audioContext.resume();
         }
     }
