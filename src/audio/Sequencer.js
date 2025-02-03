@@ -51,6 +51,9 @@ export class Sequencer {
             await this.initialize();
         }
 
+        // Start synth (initializes Tone.js after user interaction)
+        await this.synth.start();
+
         // Start the scheduler with our tick callback
         this.scheduler.start((time) => this.tick(time));
         // console.log('[Sequencer] Started playback');

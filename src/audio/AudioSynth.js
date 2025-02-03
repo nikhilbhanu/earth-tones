@@ -17,34 +17,37 @@ export class AudioSynth {
      */
     async initialize() {
         if (this.isInitialized) return;
-
-        const context = this.audioCore.getContext();
-        const masterGain = this.audioCore.getMasterGain();
-
-        if (!context || !masterGain) {
-            throw new Error('AudioCore not properly initialized');
-        }
-
-        // Initialize Tone.js with our context
-        Tone.setContext(context);
-        await Tone.start();
-
-        // Create and configure synth
-        this.synth = new Tone.PolySynth(Tone.Synth).toDestination();
-        this.synth.set({
-            envelope: {
-                attack: 0.005,
-                decay: 0.1,
-                sustain: 0.3,
-                release: 0.1
-            }
-        });
-
-        // Connect to master gain
-        this.synth.disconnect();
-        this.synth.connect(masterGain);
-
         this.isInitialized = true;
+    }
+
+    async start() {
+        if (!this.synth) {
+            const context = this.audioCore.getContext();
+            const masterGain = this.audioCore.getMasterGain();
+
+            if (!context || !masterGain) {
+                throw new Error('AudioCore not properly initialized');
+            }
+
+            // Initialize Tone.js with our context
+            Tone.setContext(context);
+            await Tone.start();
+
+            // Create and configure synth
+            this.synth = new Tone.PolySynth(Tone.Synth).toDestination();
+            this.synth.set({
+                envelope: {
+                    attack: 0.005,
+                    decay: 0.1,
+                    sustain: 0.3,
+                    release: 0.1
+                }
+            });
+
+            // Connect to master gain
+            this.synth.disconnect();
+            this.synth.connect(masterGain);
+        }
     }
 
     /**
