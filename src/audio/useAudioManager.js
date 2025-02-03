@@ -15,9 +15,6 @@ export function useAudioManager() {
   const { attack, decay, sustain, release, bpm } = useAudioParametersStore();
 
   useEffect(() => {
-    // Initialize audio when hook is first used
-    initializeAudio().catch(console.error);
-
     // Cleanup when component unmounts
     return () => {
       stop();

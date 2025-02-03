@@ -23,58 +23,36 @@ const useAudioStore = create((set, get) => {
         activeSphereNotes: [], // Array of {noteNumber: number, cents: number}
         masterVolume: 0.75, // Initial volume (0-1)
 
-        // Initialize audio
+        // Initialize audio components
         initializeAudio: async () => {
             if (get().isInitialized) return;
-
-            try {
-                set({ isLoading: true, error: null });
-
-                // Create and initialize audio components
-                audioCore = new AudioCore();
-                scheduler = new AudioScheduler(audioCore);
-                synth = new AudioSynth(audioCore);
-                sequencer = new Sequencer(audioCore, scheduler, synth);
-
-                // Initialize audio core and sequencer
-                await audioCore.initialize();
-                await sequencer.initialize();
-
-                // Set up step change callback
-                sequencer.setStepChangeCallback((step) => {
-                    set({ currentStep: step });
-                });
-
-                set({
-                    isLoading: false,
-                    isInitialized: true,
-                });
-            } catch (error) {
-                set({
-                    isLoading: false,
-                    error: 'Failed to initialize audio. Please check your browser permissions.'
-                });
-                // console.error('Audio initialization error:', error);
-            }
+            set({ isLoading: true, error: null });
+            set({ isInitialized: true, isLoading: false });
         },
 
         // Volume control
         setMasterVolume: (volume) => {
-            audioCore.setMasterVolume(volume);
-            set({ masterVolume: volume });
+            if (audioCore) {
+                audioCore.setMasterVolume(volume);
+                set({ masterVolume: volume });
+            }
         },
 
         // Sequencer controls
         setSequence: (sequence) => {
-            sequencer.setSequence(sequence);
-            set({ sequence });
+            if (sequencer) {
+                sequencer.setSequence(sequence);
+                set({ sequence });
+            }
         },
 
         toggleStep: (stepIndex) => {
             set((state) => {
                 const newSequence = [...state.sequence];
                 newSequence[stepIndex] = !newSequence[stepIndex];
-                sequencer.setSequence(newSequence);
+                if (sequencer) {
+                    sequencer.setSequence(newSequence);
+                }
                 return { sequence: newSequence };
             });
         },
@@ -85,9 +63,25 @@ const useAudioStore = create((set, get) => {
                     await get().initializeAudio();
                 }
 
+                // Create audio components on first start (after user gesture)
+                if (!audioCore) {
+                    audioCore = new AudioCore();
+                    scheduler = new AudioScheduler(audioCore);
+                    synth = new AudioSynth(audioCore);
+                    sequencer = new Sequencer(audioCore, scheduler, synth);
+
+                    // Initialize audio core and sequencer
+                    await audioCore.initialize();
+                    await sequencer.initialize();
+
+                    // Set up step change callback
+                    sequencer.setStepChangeCallback((step) => {
+                        set({ currentStep: step });
+                    });
+                }
+
                 // Resume AudioContext (needed after user gesture)
                 await audioCore.resume();
-
                 await sequencer.start();
                 set({ isRunning: true, error: null });
             } catch (error) {
@@ -98,7 +92,9 @@ const useAudioStore = create((set, get) => {
 
         stop: () => {
             try {
-                sequencer.stop();
+                if (sequencer) {
+                    sequencer.stop();
+                }
                 set({ isRunning: false, currentStep: 0 });
             } catch (error) {
                 set({ error: 'Failed to stop audio playback.' });
@@ -108,13 +104,15 @@ const useAudioStore = create((set, get) => {
 
         // Update synth parameters from audioParametersStore
         updateSynthParameters: (params) => {
-            sequencer.setBpm(params.bpm);
-            sequencer.updateSynthEnvelope({
-                attack: params.attack,
-                decay: params.decay,
-                sustain: params.sustain,
-                release: params.release
-            });
+            if (sequencer) {
+                sequencer.setBpm(params.bpm);
+                sequencer.updateSynthEnvelope({
+                    attack: params.attack,
+                    decay: params.decay,
+                    sustain: params.sustain,
+                    release: params.release
+                });
+            }
         },
 
         // Update active sphere notes
@@ -128,7 +126,9 @@ const useAudioStore = create((set, get) => {
 
         // Cleanup
         dispose: () => {
-            sequencer.dispose();
+            if (sequencer) {
+                sequencer.dispose();
+            }
             set({ isRunning: false });
         },
 
